@@ -253,31 +253,39 @@ export async function buscarCentrosAplicaveis(
 ) {
   const result: CentrosAplica[] = await db.getAllAsync(`
       SELECT DISTINCT
-        IIF(B.inventario_id IS NULL,0,1) AS aplica,
-        A.centroDeCustos,
-        A.subdivisao
+        IIF(B.inventario_id IS NULL, 0, 1) AS aplica,
+        C.centroDeCustos,
+        C.subdivisao
       FROM
-        tbAtivos AS A
-      LEFT JOIN
       (
-        SELECT
-          inventario_id,
-          centroDeCustos,
-          subdivisao
-        FROM
-          tbCentrosInventarios
-        WHERE
-          inventario_id = '${inventarioAtual}'
-      ) AS B
-      ON
-      (
-        B.centroDeCustos = A.centroDeCustos AND
-        B.subdivisao = A.subdivisao
-      )
-        WHERE A.inventario_id = '${inventarioAtual}'
-      ORDER BY
-        A.centroDeCustos, 
-        A.subdivisao;
+      SELECT
+        centroDeCustos,
+        subdivisao
+      FROM tbAtivos
+      WHERE inventario_id = '${inventarioAtual}'
+        UNION
+      SELECT
+        novoCentroDeCustos AS centroDeCustos,
+        novaSubdivisao AS subdivisao
+      FROM tbAtivosInventario
+      WHERE inventario_id = '${inventarioAtual}' AND
+      novoCentroDeCustos IS NOT NULL
+        ) AS C
+        LEFT JOIN
+        (
+      SELECT
+        inventario_id,
+        centroDeCustos,
+        subdivisao
+      FROM tbCentrosInventarios
+      WHERE inventario_id = '${inventarioAtual}'
+    ) AS B
+    ON
+      B.centroDeCustos = C.centroDeCustos AND
+      B.subdivisao = C.subdivisao
+    ORDER BY
+      C.centroDeCustos,
+      C.subdivisao;
     `);
 
   return result;
