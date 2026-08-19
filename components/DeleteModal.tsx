@@ -49,7 +49,7 @@ export default function DeleteModal({
       <View style={styles.container}>
         {!loading ? (
           <View style={styles.modal}>
-            <Text>Tem certeza que deseja excluir?</Text>
+            <Text>Tem certeza que deseja excluir este inventário?</Text>
             <View style={styles.btnContainer}>
               <Button onPress={() => handleDelete()} title="Sim" />
               <Button onPress={() => setDeleteModalState(false)} title="Não" />

@@ -71,7 +71,6 @@ export default function TelaInventario() {
   const [valorFiltro, setValorFiltro] = useState("");
   const [campoFiltro, setCampoFiltro] = useState("codigo_ativo");
 
-
   let ativosPorStatus;
   switch (selectedTab) {
     // Lidos
@@ -126,6 +125,18 @@ export default function TelaInventario() {
     setPaginaAtual(0);
   };
 
+  useFocusEffect(
+  useCallback(() => {
+    return () => {
+      setSelectedCards([]);
+    };
+  }, [])
+);
+
+  const limparSelecionados = () => {
+    setSelectedCards([]);
+  }
+
   const handleSelectedCard = (idAtivo: number) => {
     setSelectedCards((prev) =>
       selectedCards.includes(idAtivo)
@@ -135,6 +146,12 @@ export default function TelaInventario() {
   };
 
   const handleEditCentro = async (data: Data) => {
+
+    data = {
+      novoCentroDeCustos: data.novoCentroDeCustos.trim(),
+      novaSubdivisao: data.novaSubdivisao.trim().toUpperCase(),
+    };
+
     const res = await editarCentrosService(db, {
       ...data,
       ids: selectedCards,
@@ -156,6 +173,7 @@ export default function TelaInventario() {
     });
 
     setEditCdcs(false);
+    limparSelecionados();
 
     if (!inventarioAtual) return;
 
@@ -163,6 +181,8 @@ export default function TelaInventario() {
 
     setAtivosInventario(ativos);
   };
+
+  console.log(selectedCards)
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     data.codigo = data.codigo.trim();
@@ -289,7 +309,11 @@ export default function TelaInventario() {
         {/* ADICIONAR */}
         <TouchableOpacity
           style={[styles.btn, styles.btnAdd]}
-          onPress={() => setAddModal(true)}
+          onPress={() => {
+            setAddModal(true);
+            limparSelecionados();
+
+          }}
         >
           <AntDesign name="plus" size={20} color="#fff" />
         </TouchableOpacity>
@@ -298,7 +322,10 @@ export default function TelaInventario() {
         {inventarioAtual !== null && (
           <TouchableOpacity
             style={[styles.btn, styles.btnEdit]}
-            onPress={() => setEditModal(true)}
+            onPress={() => {
+              setEditModal(true);
+              limparSelecionados();
+            }}
           >
             <AntDesign name="edit" size={20} color="#fff" />
           </TouchableOpacity>
@@ -307,7 +334,10 @@ export default function TelaInventario() {
         {/* Excluir */}
         {inventarioAtual !== null && (
           <TouchableOpacity
-            onPress={() => setDeleteModalState(true)}
+            onPress={() => {
+              setDeleteModalState(true);
+              limparSelecionados();
+            }}
             style={[styles.btn, styles.btnDelete]}
           >
             <MaterialIcons name="delete" size={20} color="white" />
@@ -320,6 +350,7 @@ export default function TelaInventario() {
             style={[styles.btn, styles.btnRead]}
             onPress={() => {
               setModalState(true);
+              limparSelecionados();
             }}
           >
             <AntDesign name="barcode" size={20} color="#fff" />

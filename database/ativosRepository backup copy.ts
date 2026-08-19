@@ -150,6 +150,24 @@ export async function buscarAtivosInventario(
             C.novaSubdivisao
         FROM
             tbAtivosInventario AS C
+        INNER JOIN
+            tbCentrosInventarios AS B
+        ON
+          (
+            B.inventario_id = C.inventario_id
+            AND B.centroDeCustos = IIF(
+                C.novoCentroDeCustos IS NULL,
+                C.centroDeCustos,
+                C.novoCentroDeCustos
+            )
+            AND B.subdivisao = IIF(
+                C.novaSubdivisao IS NULL,
+                C.subdivisao,
+                C.novaSubdivisao
+            )
+        )
+        WHERE
+            C.inventario_id = '${inventarioId}'
         ) AS C
       ON
     (
@@ -325,7 +343,7 @@ export async function buscarAtivosInventarioDashboard(
             (
               SELECT DISTINCT
                 IIF(C.novoCentroDeCustos IS NULL,B.centroDeCustos,C.novoCentroDeCustos) AS centroDeCustos,
-				        IIF(C.novaSubdivisao IS NULL,B.subdivisao,C.novaSubdivisao) AS subdivisao,
+				IIF(C.novaSubdivisao IS NULL,B.subdivisao,C.novaSubdivisao) AS subdivisao,
                 A.codigo_ativo,
                 1 AS Total,
                 IIF(C.codigo_ativo IS NULL,0,1) AS Realizado
@@ -346,10 +364,11 @@ export async function buscarAtivosInventarioDashboard(
                   subdivisao
                 FROM
                   tbCentrosInventarios
+                WHERE
+                  inventario_id = '${id}'
               ) AS B
               ON
               (
-                B.inventario_id = A.inventario_id AND
                 B.centroDeCustos = IIF(C.novoCentroDeCustos IS NULL, A.centroDeCustos, C.novoCentroDeCustos) AND
                 B.subdivisao = IIF(C.novaSubdivisao IS NULL, A.subdivisao, C.novaSubdivisao)
               )
