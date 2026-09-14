@@ -2,7 +2,6 @@ import { buscarTodosAtivos, inserirAtivos } from "@/database/ativosRepository";
 import { Ativo, Inventario } from "@/types";
 import * as DocumentPicker from "expo-document-picker";
 import { SQLiteDatabase } from "expo-sqlite";
-import { SetStateAction } from "react";
 import * as XLSX from "xlsx";
 
 const requiredColumns = [
@@ -19,13 +18,13 @@ const requiredColumns = [
   "datahoraatualizacao",
 ];
 
-type PickXLSXParams = {
+type importarAtivosXLSXParams = {
   inventarioAtual: Inventario | null;
-  setLoading: React.Dispatch<SetStateAction<boolean>>;
+  result: DocumentPicker.DocumentPickerSuccessResult;
   db: SQLiteDatabase;
 };
 
-type PickXLSXResponse =
+type importarAtivosXLSXResponse =
   | {
       ok: true;
       ativos: Ativo[];
@@ -33,14 +32,14 @@ type PickXLSXResponse =
     }
   | {
       ok: false;
-      motivo: "inventario_nao_selecionado" | "cancelado" | "erro inesperado";
+      motivo: "inventario_nao_selecionado" | "erro inesperado";
     }
-    | {
+  | {
       ok: false;
       motivo: "validacao";
       message: string;
     }
-    | {
+  | {
       ok: false;
       motivo: "erros";
       erros: Erro[];
@@ -51,29 +50,15 @@ export type Erro = {
   erro: string;
 };
 
-export const pickXLSX = async ({
+export const importarAtivosXLSX = async ({
   inventarioAtual,
-  setLoading,
+  result,
   db,
-}: PickXLSXParams): Promise<PickXLSXResponse> => {
-
-  if (!inventarioAtual) return { ok: false, motivo: "inventario_nao_selecionado" }
+}: importarAtivosXLSXParams): Promise<importarAtivosXLSXResponse> => {
+  if (!inventarioAtual)
+    return { ok: false, motivo: "inventario_nao_selecionado" };
 
   try {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: [
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "application/vnd.ms-excel",
-      ],
-      copyToCacheDirectory: true,
-    });
-
-    setLoading(true);
-
-    if ("canceled" in result && result.canceled) {
-      setLoading(false);
-      return { ok: false, motivo: "cancelado" };
-    }
 
     const file = result.assets[0];
 
@@ -86,6 +71,17 @@ export const pickXLSX = async ({
     const sheet = workbook.Sheets[sheetName];
 
     const rawData = XLSX.utils.sheet_to_json<any>(sheet, { defval: null });
+
+    const normalizedData = rawData.map((row) => {
+      const normalizedRow: Record<string, any> = {};
+
+      for (const [key, value] of Object.entries(row)) {
+        const normalizedKey = key.trim().toLowerCase();
+        normalizedRow[normalizedKey] = value;
+      }
+
+      return normalizedRow;
+    });
 
     const rows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
 
@@ -129,7 +125,7 @@ export const pickXLSX = async ({
         regex: /^(?!\s*$).+/,
       },
       {
-        field: "centroDeCustos",
+        field: "centrodecustos",
         label: "Centro de custos",
         regex: /^[a-zA-Z0-9]+$/,
       },
@@ -149,8 +145,8 @@ export const pickXLSX = async ({
         regex: /^[a-zA-Z0-9]*$/,
       },
       {
-        field: "localização",
-        label: "Categoria",
+        field: "localizacao",
+        label: "Localização",
         regex: /^[a-zA-Z0-9]*$/,
       },
     ];
@@ -159,22 +155,24 @@ export const pickXLSX = async ({
 
     for (const validation of validations) {
       for (let i = 0; i < rawData.length; i++) {
-        const value = rawData[i][validation.field] ?? "";
+        const value = normalizedData[i][validation.field] ?? "";
 
         if (!validation.regex.test(value)) {
           erros.push({
             linha: i + 2,
-            erro: `${validation.field} com valor inválido.`,
+            erro: `${validation.label} com valor inválido.`,
           });
         }
       }
     }
 
-    erros.sort((a, b) => a.linha - b.linha); 
+    erros.sort((a, b) => a.linha - b.linha);
 
     if (erros.length) return { ok: false, motivo: "erros", erros: erros };
 
-    await inserirAtivos({ db, inventarioAtual, data: rawData });
+    console.log("NORMALIZED DATA1", normalizedData);
+
+    await inserirAtivos({ db, inventarioAtual, data: normalizedData });
 
     const res: Ativo[] = await buscarTodosAtivos(inventarioAtual.id, db);
 
@@ -182,11 +180,9 @@ export const pickXLSX = async ({
   } catch (error) {
     console.error("ERRO GERAL:", error);
 
-  return {
-    ok: false,
-    motivo: "erro inesperado",
-  };
-  } finally {
-    setLoading(false);
+    return {
+      ok: false,
+      motivo: "erro inesperado",
+    };
   }
 };

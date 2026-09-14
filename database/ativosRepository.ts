@@ -31,6 +31,7 @@ export async function inserirAtivos({
     try {
       await db.execAsync("BEGIN TRANSACTION");
       for (const row of batch) {
+        console.log("ROW NO BANCO1", row);
         const a: Ativo = {
           inventario_id: inventarioAtual.id,
           codigo_ativo: String(row.codigo_ativo ?? ""),
@@ -38,12 +39,12 @@ export async function inserirAtivos({
           comentarios: String(row.comentarios ?? ""),
           categoria: String(row.categoria ?? ""),
           localizacao: String(row.localizacao ?? ""),
-          centroDeCustos: String(row.centroDeCustos ?? ""),
+          centroDeCustos: String(row.centrodecustos ?? ""),
           subdivisao: String(row.subdivisao ?? ""),
-          dataHoraInventariado: String(row.dataHoraInventariado ?? ""),
+          dataHoraInventariado: String(row.datahorainventariado ?? ""),
           status: Number(row.status ?? 0),
           dataHoraCriacao: String(row.dataHoraCriacao ?? ""),
-          dataHoraAtualizacao: String(row.dataHoraAtualizacao ?? ""),
+          dataHoraAtualizacao: String(row.datahoraatualizacao ?? ""),
         };
         await db.runAsync(
           `INSERT INTO tbAtivos
