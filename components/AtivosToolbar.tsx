@@ -1,16 +1,31 @@
 import { SetStateAction, useMemo, useState } from "react";
-import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Button,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import { useAtivo } from "@/contexts/AtivosContext";
+import {
+  buscarAtivoPeloCodigo,
+  inserirAtivoLista,
+} from "@/database/ativosRepository";
 import { useDataBase } from "@/database/DatabaseContext";
 import { exportTemplate } from "@/services/exportTamplate";
 import { exportXLSX } from "@/services/exportXLSX";
 import { Erro, pickXLSX } from "@/services/importarPlanilhaAtivos";
-import { Inventario } from "@/types";
+import { Ativo, AtivoToInsert, Inventario } from "@/types";
+import { AntDesign, Octicons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import ModalGenerico from "./ModalGenerico";
+import NovoAtivoForm from "./NovoAtivoForm";
 
-export default function CarregarXML({
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
+export default function AtivosToolbar({
   setLoading,
   inventarioAtual,
 }: {
@@ -20,39 +35,44 @@ export default function CarregarXML({
   const { setAtivos } = useAtivo();
   const db = useDataBase();
 
-  const [modalState, setModalState] = useState<boolean>(false);
+  const [errorsModalState, setErrorsModalState] = useState<boolean>(false);
+
+  const [addModalState, setAddModalState] = useState<boolean>(false);
+
   const [erros, setErros] = useState<Erro[]>();
 
   const errosPreview = useMemo(() => {
     return erros?.slice(0, 100);
   }, [erros]);
 
+  const closeErrorsModal = () => {
+    setErrorsModalState(false);
+  }
+
   const handlePick = async () => {
     const res = await pickXLSX({ inventarioAtual, setLoading, db });
 
     if (!res.ok) {
-
-    if(res.motivo === "erros"){
-      setErros(res.erros);
-      setModalState(true);
+      if (res.motivo === "erros") {
+        setErros(res.erros);
+        setErrorsModalState(true);
       }
 
-  if(res.motivo === "validacao")
-    Toast.show({
-      type: "error",
-      text1: res.message,
-    });
+      if (res.motivo === "validacao")
+        Toast.show({
+          type: "error",
+          text1: res.message,
+        });
 
-      return
+      return;
     }
 
     setAtivos(res.ativos);
 
-     Toast.show({
+    Toast.show({
       type: "success",
       text1: res.message,
     });
-
   };
 
   const handleExportarErros = async () => {
@@ -65,13 +85,75 @@ export default function CarregarXML({
     exportXLSX({ rows: erros, nome });
   };
 
+  const handleAddAtivo = async (ativo: AtivoToInsert) => {
+    Object.keys(ativo).forEach((key) => {
+      const typedKey = key as keyof AtivoToInsert;
+      const value = ativo[typedKey];
+
+      if (typeof value === "string") {
+        (ativo as any)[typedKey] = value.trim();
+      }
+    });
+
+    try {
+      const res = await buscarAtivoPeloCodigo(db, ativo.codigo_ativo.trim());
+
+      if (res) {
+        Toast.show({
+          type: "error",
+          text1: "Já existe um ativo com este código",
+        });
+        return;
+      }
+
+      await inserirAtivoLista(db, ativo);
+
+      const novoAtivo: Ativo = {
+        inventario_id: ativo.inventario_id,
+        codigo_ativo: ativo.codigo_ativo,
+        centroDeCustos: ativo.centroDeCustos,
+        subdivisao: ativo.subdivisao ?? "",
+        descricao: ativo.descricao,
+        categoria: ativo.categoria ?? "",
+        comentarios: ativo.comentarios ?? "",
+        localizacao: "",
+        dataHoraCriacao: ativo.dataHoraCriacao ?? "",
+        dataHoraInventariado: ativo.dataHoraInventariado ?? "",
+        dataHoraAtualizacao: ativo.dataHoraAtualizacao ?? "",
+        status: ativo.status ?? 0,
+      };
+
+      setAtivos((prev) => [...prev, novoAtivo]);
+
+      closeAddAtivoModal();
+
+      Toast.show({
+        type: "success",
+        text1: "Ativo adicionado com sucesso",
+      });
+    } catch (err) {
+      Toast.show({
+        type: "error",
+        text1: "Erro ao adicionar ativo",
+      });
+      console.log(err);
+    }
+  };
+
+  const openAddAtivoModal = () => {
+    setAddModalState(true);
+  };
+  const closeAddAtivoModal = () => {
+    setAddModalState(false);
+  };
+
   return (
     <View style={styles.container}>
       <ModalGenerico
-        onClose={() => setModalState(false)}
+        onClose={closeErrorsModal}
         height="50%"
         width="90%"
-        modalState={modalState}
+        modalState={errorsModalState}
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>
@@ -118,13 +200,57 @@ export default function CarregarXML({
         </View>
       </ModalGenerico>
 
-      <Button
-        disabled={!inventarioAtual}
-        title="Carregar XLSX"
-        onPress={handlePick}
-      />
+      {!!inventarioAtual && (
+        <ModalGenerico
+          bgColor="#F5F7FA"
+          height={700}
+          width={400}
+          modalState={addModalState}
+          onClose={closeAddAtivoModal}
+        >
+          <NovoAtivoForm
+            onSubmit={handleAddAtivo}
+            inventarioId={inventarioAtual.id}
+          />
+        </ModalGenerico>
+      )}
 
-      <Button title="Baixar modelo" onPress={exportTemplate} />
+      <TouchableOpacity
+        style={[
+          styles.btn,
+          styles.btnImport,
+          !inventarioAtual && {
+            backgroundColor: "#D1D5DB",
+            opacity: 0.6,
+          },
+        ]}
+        disabled={!inventarioAtual}
+        onPress={handlePick}
+      >
+        <MaterialIcons name="upload-file" size={27} color="#fff" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.btn, styles.btnDownload]}
+        onPress={exportTemplate}
+      >
+        <Octicons name="download" size={20} color="#fff" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[
+          styles.btn,
+          styles.btnAdd,
+          !inventarioAtual && {
+            backgroundColor: "#D1D5DB",
+            opacity: 0.6,
+          },
+        ]}
+        disabled={!inventarioAtual}
+        onPress={openAddAtivoModal}
+      >
+        <AntDesign name="plus" size={20} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -230,5 +356,26 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     color: "#92400E",
     textAlign: "center",
+  },
+btn: {
+  width: 40,
+  height: 40,
+  borderRadius: 10,
+  elevation: 3,
+  shadowColor: "#000",
+  shadowOpacity: 0.15,
+  shadowRadius: 4,
+  shadowOffset: { width: 1, height: 2 },
+  justifyContent: "center",
+  alignItems: "center",
+},
+  btnImport: {
+    backgroundColor: "#16a34a", // verde
+  },
+  btnAdd: {
+    backgroundColor: "#2563eb", // azul
+  },
+  btnDownload: {
+    backgroundColor: "#7c3aed",
   },
 });

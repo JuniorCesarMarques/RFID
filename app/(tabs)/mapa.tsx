@@ -85,7 +85,7 @@ export default function App() {
                 title={a.codigo_ativo}
                 description={a.descricao_ativo}
               >
-                <GetIcon categoria={a.categoria_ativo} />
+                <GetIcon descricao={a.descricao_ativo} />
               </Marker>
             );
           }

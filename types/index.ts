@@ -13,6 +13,20 @@ export type Ativo = {
   dataHoraAtualizacao: string;
 };
 
+export type AtivoToInsert = {
+  inventario_id: number;
+  codigo_ativo: string;
+  descricao: string;
+  comentarios?: string;
+  categoria?: string;
+  centroDeCustos: string;
+  subdivisao?: string;
+  dataHoraInventariado?: string;
+  status?: number;
+  dataHoraCriacao?: string;
+  dataHoraAtualizacao?: string;
+};
+
 export type Inventario = {
   id: number;
   codigo_inventario: string;

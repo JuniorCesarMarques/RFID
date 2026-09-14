@@ -16,8 +16,10 @@ export default function ModalGenerico({
   onClose,
   height,
   width,
+  bgColor,
   basedOnKeyboard,
 }: {
+  bgColor?: string;
   onOpen?: () => void;
   onClose: () => void;
   modalState: boolean;
@@ -44,20 +46,24 @@ export default function ModalGenerico({
   }, []);
 
   return (
-    <Modal 
-    onShow={() => onOpen?.()} 
-    transparent 
-    visible={modalState}
-    >
+    <Modal onShow={() => onOpen?.()} transparent visible={modalState}>
       <View
         style={[
           styles.modalContainer,
-          basedOnKeyboard ? {
-            justifyContent: isKeyboardOpen ? "flex-start" : "center",
-          } : {justifyContent: "center"},
+          basedOnKeyboard
+            ? {
+                justifyContent: isKeyboardOpen ? "flex-start" : "center",
+              }
+            : { justifyContent: "center" },
         ]}
       >
-        <View style={[styles.modal, { width, height }]}>
+        <View
+          style={[
+            styles.modal,
+            { width, height },
+            !!bgColor && { backgroundColor: bgColor },
+          ]}
+        >
           <TouchableOpacity
             onPress={() => {
               onClose();
@@ -68,7 +74,7 @@ export default function ModalGenerico({
               X
             </Text>
           </TouchableOpacity>
-            {children}
+          {children}
         </View>
       </View>
     </Modal>
@@ -87,7 +93,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignSelf: "center",
     paddingTop: 40,
-    paddingHorizontal: 40
+    paddingHorizontal: 40,
   },
   closeButton: {
     position: "absolute",

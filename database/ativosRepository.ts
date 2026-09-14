@@ -3,7 +3,7 @@ import { AtivoComEncontrado } from "@/app/(tabs)/inventario";
 import { AtivosMapa } from "@/app/(tabs)/mapa";
 import { CentroDivisao } from "@/components/CentrosDeCustosSelect";
 import { CentrosAplica } from "@/components/EditModal";
-import { Ativo, AtivosInventario, Inventario } from "@/types";
+import { Ativo, AtivosInventario, AtivoToInsert, Inventario } from "@/types";
 import { SQLiteDatabase } from "expo-sqlite";
 
 type InserirAtivosParams = {
@@ -97,6 +97,14 @@ export async function buscarTodosAtivos(
   }
 }
 
+export async function buscarAtivoPeloCodigo(db: SQLiteDatabase, codigo: string){
+
+  const res = await db.getFirstAsync(`SELECT codigo_ativo FROM tbAtivos WHERE codigo_ativo = ?`, [codigo]);
+
+  return res;
+
+}
+
 export async function buscarAtivosInventario(
   inventarioId: number,
   db: SQLiteDatabase,
@@ -122,7 +130,7 @@ export async function buscarAtivosInventario(
     (
       SELECT
         IIF(C.id IS NULL, 0, 1) AS Encontrado,
-        C.id,
+        A.id,
         A.codigo_ativo,
         A.descricao,
         A.comentarios,
@@ -277,36 +285,37 @@ export async function getAtivosInventariosHistorico(
   db: SQLiteDatabase,
   inventarioId: number,
 ) {
+
   return await db.getAllAsync<AtivosInventario>(`
-      SELECT
-          C.codigo_inventario,
-          A.codigo_ativo,
-          A.descricao_ativo,
-          A.categoria_ativo,
-          A.centroDeCustos,
-          A.subdivisao,
-          A.novoCentroDeCustos,
-          A.novaSubdivisao,
-          A.latitude,
-          A.longitude,
-          A.accuracy,
-          A.comentarios_ativo,
-          IIF(A.inputType=1,'X','') AS RFID,
-          A.dataHoraInventariado
-      FROM
-        tbAtivosInventario AS A
+    SELECT 
+        C.codigo_inventario,
+        A.codigo_ativo,
+        A.descricao_ativo,
+        A.categoria_ativo,
+        A.centroDeCustos,
+        A.subdivisao,
+        A.novoCentroDeCustos,
+        A.novaSubdivisao,
+        A.latitude,
+        A.longitude,
+        A.accuracy,
+        A.comentarios_ativo,
+        IIF(A.inputType=1,'X','') AS RFID,
+        A.dataHoraInventariado
+      FROM 
+    tbAtivosInventario AS A
       INNER JOIN
-        tbAtivos AS B
+    tbAtivos AS B
       ON
-        A.codigo_ativo = B.codigo_ativo AND
-        A.inventario_id = B.inventario_id
+    A.codigo_ativo = B.codigo_ativo AND
+    A.inventario_id = B.inventario_id
       INNER JOIN
-        tbInventarios AS C
+    tbInventarios AS C
       ON
-        C.id = A.inventario_id
-      WHERE 
-        C.id = ${inventarioId}
-        `);
+    A.inventario_id = C.id
+      WHERE
+    A.inventario_id = ${inventarioId};
+      ORDER BY A.codigo_ativo`);
 }
 
 export async function buscarAtivosInventarioDashboard(
@@ -324,8 +333,8 @@ export async function buscarAtivosInventarioDashboard(
             FROM
             (
               SELECT DISTINCT
-                IIF(C.novoCentroDeCustos IS NULL,B.centroDeCustos,C.novoCentroDeCustos) AS centroDeCustos,
-				        IIF(C.novaSubdivisao IS NULL,B.subdivisao,C.novaSubdivisao) AS subdivisao,
+                IIF(C.novoCentroDeCustos IS NULL,A.centroDeCustos,C.novoCentroDeCustos) AS centroDeCustos,
+				        IIF(C.novaSubdivisao IS NULL,A.subdivisao,C.novaSubdivisao) AS subdivisao,
                 A.codigo_ativo,
                 1 AS Total,
                 IIF(C.codigo_ativo IS NULL,0,1) AS Realizado
@@ -427,6 +436,42 @@ DO UPDATE SET
   } catch (err) {
     console.log(err);
   }
+}
+
+export async function inserirAtivoLista(db: SQLiteDatabase, ativo: AtivoToInsert){
+
+  const ativoFormatado: AtivoToInsert = {
+    inventario_id: ativo.inventario_id,
+    codigo_ativo: ativo.codigo_ativo,
+    descricao: ativo.descricao,
+    comentarios: ativo.comentarios,
+    categoria: ativo.categoria,
+    centroDeCustos: ativo.centroDeCustos,
+    subdivisao: ativo.subdivisao,
+    dataHoraInventariado: ativo.dataHoraInventariado,
+    status: ativo.status,
+    dataHoraCriacao: ativo.dataHoraCriacao,
+    dataHoraAtualizacao: ativo.dataHoraAtualizacao
+  }
+
+  const values = Object.values(ativoFormatado).map(v => typeof v === "string" ? v.trim() : v);
+
+  const res = await db.runAsync(`INSERT INTO tbAtivos (
+      inventario_id,
+      codigo_ativo,
+      descricao,
+      comentarios,
+      categoria,
+      centroDeCustos,
+      subdivisao,
+      dataHoraInventariado,
+      status,
+      dataHoraCriacao,
+      dataHoraAtualizacao 
+    )
+      VALUES (?,?,?,?,?,?,?,?,?,?,?)`, [...values]);
+
+      return res.lastInsertRowId;
 }
 
 export async function contarAtivos(db: SQLiteDatabase, id: number) {

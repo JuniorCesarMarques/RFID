@@ -53,7 +53,7 @@ export default function TelaInventario() {
     useInventarios();
 
   const [selectedTab, setSelectedTab] = useState<number>(0);
-  const [selectedCards, setSelectedCards] = useState<number[]>([]);
+  const [selectedCards, setSelectedCards] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const [modalState, setModalState] = useState<boolean>(false);
@@ -137,11 +137,11 @@ export default function TelaInventario() {
     setSelectedCards([]);
   }
 
-  const handleSelectedCard = (idAtivo: number) => {
+  const handleSelectedCard = (codigo_ativo: string) => {
     setSelectedCards((prev) =>
-      selectedCards.includes(idAtivo)
-        ? selectedCards.filter((id) => id !== idAtivo)
-        : [...prev, idAtivo],
+      selectedCards.includes(codigo_ativo)
+        ? selectedCards.filter((codigo) => codigo !== codigo_ativo)
+        : [...prev, codigo_ativo],
     );
   };
 
@@ -154,7 +154,7 @@ export default function TelaInventario() {
 
     const res = await editarCentrosService(db, {
       ...data,
-      ids: selectedCards,
+      codigos: selectedCards,
     });
 
     if (!res?.changes) {
@@ -181,8 +181,6 @@ export default function TelaInventario() {
 
     setAtivosInventario(ativos);
   };
-
-  console.log(selectedCards)
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     data.codigo = data.codigo.trim();
@@ -228,7 +226,7 @@ export default function TelaInventario() {
 
   const dataHora = new Date().toISOString();
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     (async () => {
       setLoading(true);
       try {
@@ -245,7 +243,8 @@ export default function TelaInventario() {
         setLoading(false);
       }
     })();
-  }, [inventarioAtual?.id, houveAlteracaoCentros]);
+  }, [inventarioAtual?.id, houveAlteracaoCentros]))
+
 
   const onCloseModalLeitura = async () => {
     setLoading(true);
@@ -271,6 +270,7 @@ export default function TelaInventario() {
 
     setAtivosInventario(res);
   };
+
 
   return (
     <View style={styles.container}>

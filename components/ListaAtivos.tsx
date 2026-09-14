@@ -9,8 +9,8 @@ import ModalGenerico from "./ModalGenerico";
 
 type Props = {
   onAtivoEditado: () => void;
-  handleSelectedCard: (idAtivo: number) => void;
-  selecteds: number[];
+  handleSelectedCard: (codigo: string) => void;
+  selecteds: string[];
   ativos: AtivoComEncontrado[];
   segmented: number;
   loading: boolean;

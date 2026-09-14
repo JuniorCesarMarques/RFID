@@ -16,7 +16,9 @@ export default function EditarCentroDeCustos({
   onEditCentro
 }: Props) {
 
-  const { control, handleSubmit, reset } = useForm<Data>();
+  const { control, handleSubmit, reset } = useForm<Data>({defaultValues: {
+    novaSubdivisao: ""
+  }});
 
   const onSubmit: SubmitHandler<Data> = async (data) => {
     onEditCentro(data);
@@ -26,20 +28,18 @@ export default function EditarCentroDeCustos({
     return () => reset();
   }, [])
 
-  const validacoes = {
-          required: "O campo é obrigatório.",
-          pattern: {
-            value: /^[a-zA-Z0-9 ]+$/,
-            message: "Use apenas letras e números.",
-          },
-        }
-
   return (
     <View>
       <Controller
         name="novoCentroDeCustos"
         control={control}
-        rules={validacoes}
+        rules={{
+          required: "O campo é obrigatório.",
+          pattern: {
+            value: /^[a-zA-Z0-9 ]+$/,
+            message: "Use apenas letras e números.",
+          },
+        }}
         render={({
           field: { onChange, onBlur, value },
           fieldState: { error },
@@ -60,7 +60,12 @@ export default function EditarCentroDeCustos({
       <Controller
         name="novaSubdivisao"
         control={control}
-        rules={validacoes}
+        rules={{
+          pattern: {
+            value: /^[a-zA-Z0-9 ]+$/,
+            message: "Use apenas letras e números.",
+          },
+        }}
         render={({
           field: { onChange, onBlur, value },
           fieldState: { error },

@@ -6,7 +6,7 @@ import { useInventarios } from "@/contexts/InventariosContext";
 import { contarAtivos, inserirAtivo } from "@/database/ativosRepository";
 import { useDataBase } from "@/database/DatabaseContext";
 import { useLiveLocation } from "@/hooks/useLiveLocation";
-import { Ativo, AtivosInventario } from "@/types";
+import { AtivosInventario } from "@/types";
 import { useCallback, useRef, useState } from "react";
 import { Alert } from "react-native";
 

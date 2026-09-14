@@ -120,6 +120,7 @@ export default function EditModal({
 
     const res = await editarInventario(db, data, inventarioAtual.id, dataHora);
 
+
     if (res.changes === 0) {
       Toast.show({
         type: "error",

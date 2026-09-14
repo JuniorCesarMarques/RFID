@@ -12,8 +12,8 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 type Props = {
   onEditIconPress: (ativo: AtivoComEncontrado) => void;
   onSearchIconPress: (epc: string) => void;
-  onLongPress: (c: number) => void;
-  selecteds: number[];
+  onLongPress: (c: string) => void;
+  selecteds: string[];
   ativo: AtivoComEncontrado;
   showIcon: boolean;
 };
@@ -30,19 +30,19 @@ export default function AtivoCard({
       style={[
         styles.row,
         {
-          backgroundColor: selecteds.includes(ativo.id)
+          backgroundColor: selecteds.includes(ativo.codigo_ativo)
             ? "rgba(59, 130, 246, 0.15)"
             : "transparent",
         },
       ]}
       onPress={() => {
         if (showIcon && selecteds.length) {
-          onLongPress(ativo.id);
+          onLongPress(ativo.codigo_ativo);
         }
       }}
       onLongPress={() => {
         if (showIcon) {
-          onLongPress(ativo.id);
+          onLongPress(ativo.codigo_ativo);
         }
       }}
     >

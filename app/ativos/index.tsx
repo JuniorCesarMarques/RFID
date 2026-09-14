@@ -1,4 +1,4 @@
-import CarregarXML from "@/components/CarregarXml";
+import AtivosToolbar from "@/components/AtivosToolbar";
 import { useAtivo } from "@/contexts/AtivosContext";
 import { Ativo } from "@/types";
 import { useEffect, useMemo, useState } from "react";
@@ -14,6 +14,7 @@ import { buscarTodosAtivos } from "@/database/ativosRepository";
 import { useDataBase } from "@/database/DatabaseContext";
 import usePagination from "@/hooks/usePagination";
 import { ActivityIndicator } from "@ant-design/react-native";
+
 
 export default function Ativos() {
   const { ativos, setAtivos } = useAtivo();
@@ -77,7 +78,7 @@ export default function Ativos() {
       {!inventarioAtual && (
         <AlertComponent text="Selecione um inventário para habilitar a importação" />
       )}
-      <CarregarXML inventarioAtual={inventarioAtual} setLoading={setLoading} />
+      <AtivosToolbar inventarioAtual={inventarioAtual} setLoading={setLoading} />
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size={100} color={"#60A5FA"} />
