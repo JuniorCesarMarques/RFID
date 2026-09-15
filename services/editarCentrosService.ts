@@ -9,15 +9,20 @@ type Data = {
 export default async function editarCentrosService(
   db: SQLiteDatabase,
   data: Data,
+  inventarioId: number,
 ) {
   const placeholders = data.codigos.map(() => "?").join(",");
 
   try {
     const res = await db.runAsync(
-      `UPDATE tbAtivosInventario SET novoCentroDeCustos = ?, novaSubdivisao = ? WHERE codigo_ativo IN (${placeholders})`,
-      [data.novoCentroDeCustos, data.novaSubdivisao, ...data.codigos],
+      `UPDATE tbAtivosInventario SET novoCentroDeCustos = ?, novaSubdivisao = ? WHERE inventario_id = ? AND codigo_ativo IN (${placeholders})`,
+      [
+        data.novoCentroDeCustos,
+        data.novaSubdivisao,
+        inventarioId,
+        ...data.codigos,
+      ],
     );
-
 
     return res;
   } catch (err) {

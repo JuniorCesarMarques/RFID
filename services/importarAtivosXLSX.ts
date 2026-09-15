@@ -76,7 +76,7 @@ export const importarAtivosXLSX = async ({
       const normalizedRow: Record<string, any> = {};
 
       for (const [key, value] of Object.entries(row)) {
-        const normalizedKey = key.trim().toLowerCase();
+        const normalizedKey = key.trim().toLowerCase().replace(/\s/g, "");
         normalizedRow[normalizedKey] = value;
       }
 
@@ -89,12 +89,15 @@ export const importarAtivosXLSX = async ({
 
     // REQUIRED COLUNMS
     const columnsNormalized = (rows[0] ?? []).map((col) =>
-      col?.toString().trim().toLowerCase(),
+      col?.toString().trim().toLowerCase().replace(/\s/g, ""),
     );
 
     const missing = requiredColumns.filter(
       (col) => !columnsNormalized.includes(col),
     );
+
+    console.log("MISSING", missing)
+    console.log("COLUNS NORMALIZED:", columnsNormalized)
 
     if (missing.length) {
       return {
@@ -156,6 +159,7 @@ export const importarAtivosXLSX = async ({
     for (const validation of validations) {
       for (let i = 0; i < rawData.length; i++) {
         const value = normalizedData[i][validation.field] ?? "";
+
 
         if (!validation.regex.test(value)) {
           erros.push({

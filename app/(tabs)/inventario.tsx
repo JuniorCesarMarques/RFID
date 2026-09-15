@@ -147,6 +147,8 @@ export default function TelaInventario() {
 
   const handleEditCentro = async (data: Data) => {
 
+    if(!inventarioAtual) return;
+
     data = {
       novoCentroDeCustos: data.novoCentroDeCustos.trim(),
       novaSubdivisao: data.novaSubdivisao.trim().toUpperCase(),
@@ -155,7 +157,7 @@ export default function TelaInventario() {
     const res = await editarCentrosService(db, {
       ...data,
       codigos: selectedCards,
-    });
+    }, inventarioAtual.id);
 
     if (!res?.changes) {
       Toast.show({
