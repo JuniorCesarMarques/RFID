@@ -29,6 +29,7 @@ export type AtivoToInsert = {
 
 export type Inventario = {
   id: number;
+  usuario_responsavel: string,
   codigo_inventario: string;
   descricao: string;
   status: number;
@@ -47,6 +48,7 @@ export type CentrosInventariosType = {
 export type AtivosInventario = {
   inputType: number;
   inventario_id: number;
+  usuario_responsavel: string;
   codigo_ativo: string;
   descricao_ativo: string;
   categoria_ativo: string;

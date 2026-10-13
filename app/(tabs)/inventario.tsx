@@ -36,10 +36,13 @@ import EditarCentroDeCustos, { Data } from "@/components/EditarCentroDeCustos";
 import EmptyInventario from "@/components/EmptyInventario";
 import EmptyState from "@/components/EmptyState";
 import Filtro from "@/components/Filtro";
+import ModalTrocarUsuario from "@/components/ModalTrocarUsuario";
 import Segmented from "@/components/Segmented";
+import UsuarioLogado from "@/components/UsuarioLogado";
 import editarCentrosService from "@/services/editarCentrosService";
 import { useFocusEffect } from "expo-router";
 import Toast from "react-native-toast-message";
+import { changeUser } from "@/database/usuarioRepository";
 
 export type AtivoComEncontrado = AtivosInventario & {
   id: number;
@@ -61,6 +64,8 @@ export default function TelaInventario() {
   const [editModal, setEditModal] = useState<boolean>(false);
   const [houveAlteracaoCentros, setHouveAlteracaoCentros] = useState(0);
   const [editCdcs, setEditCdcs] = useState<boolean>(false);
+
+  const [modalTrocarUsuarioState, setModalTrocarUsuarioState] = useState(false);
 
   const [deleteModalState, setDeleteModalState] = useState<boolean>(false);
 
@@ -126,16 +131,16 @@ export default function TelaInventario() {
   };
 
   useFocusEffect(
-  useCallback(() => {
-    return () => {
-      setSelectedCards([]);
-    };
-  }, [])
-);
+    useCallback(() => {
+      return () => {
+        setSelectedCards([]);
+      };
+    }, []),
+  );
 
   const limparSelecionados = () => {
     setSelectedCards([]);
-  }
+  };
 
   const handleSelectedCard = (codigo_ativo: string) => {
     setSelectedCards((prev) =>
@@ -146,18 +151,21 @@ export default function TelaInventario() {
   };
 
   const handleEditCentro = async (data: Data) => {
-
-    if(!inventarioAtual) return;
+    if (!inventarioAtual) return;
 
     data = {
       novoCentroDeCustos: data.novoCentroDeCustos.trim(),
       novaSubdivisao: data.novaSubdivisao.trim().toUpperCase(),
     };
 
-    const res = await editarCentrosService(db, {
-      ...data,
-      codigos: selectedCards,
-    }, inventarioAtual.id);
+    const res = await editarCentrosService(
+      db,
+      {
+        ...data,
+        codigos: selectedCards,
+      },
+      inventarioAtual.id,
+    );
 
     if (!res?.changes) {
       Toast.show({
@@ -199,6 +207,7 @@ export default function TelaInventario() {
 
       setInventarioAtual({
         id: result.lastInsertRowId,
+        usuario_responsavel: data.usuario,
         codigo_inventario: data.codigo,
         descricao: data.descricao,
         status: 1,
@@ -228,25 +237,26 @@ export default function TelaInventario() {
 
   const dataHora = new Date().toISOString();
 
-  useFocusEffect(useCallback(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        if (!inventarioAtual) {
-          return;
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        setLoading(true);
+        try {
+          if (!inventarioAtual) {
+            return;
+          }
+
+          const res = await buscarAtivosInventario(inventarioAtual.id, db);
+
+          setAtivosInventario(res);
+        } catch (error) {
+          console.error("Erro ao buscar ativos:", error);
+        } finally {
+          setLoading(false);
         }
-
-        const res = await buscarAtivosInventario(inventarioAtual.id, db);
-
-        setAtivosInventario(res);
-      } catch (error) {
-        console.error("Erro ao buscar ativos:", error);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [inventarioAtual?.id, houveAlteracaoCentros]))
-
+      })();
+    }, [inventarioAtual?.id, houveAlteracaoCentros]),
+  );
 
   const onCloseModalLeitura = async () => {
     setLoading(true);
@@ -273,15 +283,63 @@ export default function TelaInventario() {
     setAtivosInventario(res);
   };
 
+  const openModalTrocarUsuario = () => {
+    setModalTrocarUsuarioState(true);
+  };
+
+  const closeModalTrocarUsuario = () => {
+    setModalTrocarUsuarioState(false);
+  };
+
+
+  const onChangeUser = async (user: string) => {
+      if(!inventarioAtual) return;
+
+      const res = await changeUser(db, user, inventarioAtual.id);
+  
+      if (res.changes > 0) {
+  
+      Toast.show({
+          type: "success",
+          text1: "Usuário alterado com sucesso!",
+        });
+
+        setInventarioAtual(prev => {
+          if(prev === null) return null;
+
+          return {...prev, usuario_responsavel: user}
+        });
+
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Erro ao trocar usuário.",
+        });
+      }
+
+    };
+
+    console.log(inventarioAtual?.usuario_responsavel)
 
   return (
     <View style={styles.container}>
+      <ModalTrocarUsuario
+        onChangeUser={onChangeUser}
+        state={modalTrocarUsuarioState}
+        closeModal={closeModalTrocarUsuario}
+      />
       <ModalLeitura
         onCloseModal={onCloseModalLeitura}
         totalAtivos={ativosInventario.filter((a) => a.Encontrado !== 2).length}
         modalState={modalState}
         setModalState={setModalState}
       />
+      {inventarioAtual && (
+        <UsuarioLogado
+          onPressChange={openModalTrocarUsuario}
+          usuario={inventarioAtual?.usuario_responsavel}
+        />
+      )}
       <View style={styles.toolbar}>
         {/* PICKER */}
         <View style={styles.pickerWrapper}>
@@ -314,7 +372,6 @@ export default function TelaInventario() {
           onPress={() => {
             setAddModal(true);
             limparSelecionados();
-
           }}
         >
           <AntDesign name="plus" size={20} color="#fff" />
@@ -364,7 +421,7 @@ export default function TelaInventario() {
 
       <ModalGenerico
         width="80%"
-        height="30%"
+        height="40%"
         modalState={addModal}
         onClose={() => setAddModal(false)}
       >

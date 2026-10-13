@@ -26,9 +26,9 @@ export async function criarInventario(
 ) {
   return await db.runAsync(
     `INSERT INTO tbInventarios
-          (codigo_inventario, descricao, status, dataHoraCriacao, dataHoraAtualizacao)
-          VALUES (?, ?, ?, ?, ?)`,
-    [data.codigo, data.descricao, 1, dataHora, dataHora],
+          (usuario_responsavel, codigo_inventario, descricao, status, dataHoraCriacao, dataHoraAtualizacao)
+          VALUES (?, ?, ?, ?, ?, ?)`,
+    [data.usuario, data.codigo, data.descricao, 1, dataHora, dataHora],
   );
 }
 

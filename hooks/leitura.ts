@@ -87,10 +87,10 @@ export default function useLeitura() {
       return { success: false, message: "Ativo não encontrado." };
     }
 
-    console.log(data);
 
     try {
       const ativoInventario = {
+        usuario_responsavel: inventarioAtual.usuario_responsavel,
         inputType: 0,
         latitude,
         longitude,
@@ -169,6 +169,7 @@ export default function useLeitura() {
     if (!ativo) return;
 
     const ativoInventario: AtivosInventario = {
+      usuario_responsavel: inventarioAtual.usuario_responsavel,
       inputType: 1,
       latitude,
       longitude,

@@ -8,6 +8,7 @@ export const initDb = async () => {
 
   await db.execAsync(`PRAGMA foreign_keys = ON;`);
 
+
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS tbAtivos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,6 +33,7 @@ export const initDb = async () => {
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS tbInventarios (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario_responsavel TEXT NOT NULL,
       codigo_inventario TEXT NOT NULL,
       descricao TEXT,
       status INTEGER,
@@ -60,6 +62,7 @@ export const initDb = async () => {
     CREATE TABLE IF NOT EXISTS tbAtivosInventario (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     inventario_id INTEGER,
+    usuario_responsavel TEXT NOT NULL,
     codigo_ativo TEXT NOT NULL,
     descricao_ativo TEXT,
     comentarios_ativo TEXT,

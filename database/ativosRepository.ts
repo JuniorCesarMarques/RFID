@@ -31,7 +31,6 @@ export async function inserirAtivos({
     try {
       await db.execAsync("BEGIN TRANSACTION");
       for (const row of batch) {
-        console.log("ROW NO BANCO1", row);
         const a: Ativo = {
           inventario_id: inventarioAtual.id,
           codigo_ativo: String(row.codigo_ativo ?? ""),
@@ -289,6 +288,7 @@ export async function getAtivosInventariosHistorico(
 
   return await db.getAllAsync<AtivosInventario>(`
     SELECT 
+        A.usuario_responsavel,
         C.codigo_inventario,
         A.codigo_ativo,
         A.descricao_ativo,
@@ -384,6 +384,7 @@ export async function inserirAtivo(
     await db.runAsync(`
 INSERT INTO tbAtivosInventario (
   inventario_id,
+  usuario_responsavel,
   codigo_ativo,
   descricao_ativo,
   comentarios_ativo, 
@@ -400,6 +401,7 @@ INSERT INTO tbAtivosInventario (
 )
 VALUES (
   ${ativoInventario.inventario_id}, 
+  '${ativoInventario.usuario_responsavel}',
   '${ativoInventario.codigo_ativo}', 
   '${ativoInventario.descricao_ativo}', 
   '${ativoInventario.comentarios_ativo}', 
