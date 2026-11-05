@@ -39,10 +39,10 @@ import Filtro from "@/components/Filtro";
 import ModalTrocarUsuario from "@/components/ModalTrocarUsuario";
 import Segmented from "@/components/Segmented";
 import UsuarioLogado from "@/components/UsuarioLogado";
+import { changeUser } from "@/database/usuarioRepository";
 import editarCentrosService from "@/services/editarCentrosService";
 import { useFocusEffect } from "expo-router";
 import Toast from "react-native-toast-message";
-import { changeUser } from "@/database/usuarioRepository";
 
 export type AtivoComEncontrado = AtivosInventario & {
   id: number;
@@ -291,35 +291,39 @@ export default function TelaInventario() {
     setModalTrocarUsuarioState(false);
   };
 
-
   const onChangeUser = async (user: string) => {
-      if(!inventarioAtual) return;
+    if (!inventarioAtual) return;
 
-      const res = await changeUser(db, user, inventarioAtual.id);
-  
-      if (res.changes > 0) {
-  
+    const res = await changeUser(db, user, inventarioAtual.id);
+
+    if (res.changes > 0) {
+      closeModalTrocarUsuario();
       Toast.show({
-          type: "success",
-          text1: "Usuário alterado com sucesso!",
-        });
+        type: "success",
+        text1: "Usuário alterado com sucesso!",
+      });
 
-        setInventarioAtual(prev => {
-          if(prev === null) return null;
+      setInventarioAtual((prev) => {
+        if (prev === null) return null;
 
-          return {...prev, usuario_responsavel: user}
-        });
+        return { ...prev, usuario_responsavel: user };
+      });
 
-      } else {
-        Toast.show({
-          type: "error",
-          text1: "Erro ao trocar usuário.",
-        });
-      }
+      setInventarios((prev) => {
+        return prev.map((inv) =>
+          inv.id === inventarioAtual.id
+            ? { ...inv, usuario_responsavel: user }
+            : inv,
+        );
+      });
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "Erro ao trocar usuário.",
+      });
+    }
+  };
 
-    };
-
-    console.log(inventarioAtual?.usuario_responsavel)
 
   return (
     <View style={styles.container}>

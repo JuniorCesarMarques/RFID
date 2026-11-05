@@ -14,8 +14,6 @@ export default function ModalTrocarUsuario({
   closeModal,
   onChangeUser,
 }: ModalTrocarUsuarioProps) {
-    
-  const db = useDataBase();
 
   const [user, setUser] = useState("");
 
