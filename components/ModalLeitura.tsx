@@ -47,6 +47,7 @@ export default function ModalLeitura({
   const [modo, setModo] = useState<number>(0);
 
   const [filtro, setFiltro] = useState<CentroDivisao[]>([]);
+  const [considerarExtras, setConsiderarExtras] = useState(false);
 
   const [cdcSelecionado, setCdcSelecionado] = useState<CentroDivisao | null>(
     null,
@@ -174,6 +175,7 @@ useEffect(() => {
                 setModo(event.nativeEvent.selectedSegmentIndex)
               }
             />
+            
 
             {!modo && dispositivoConectado ? (
               <View style={styles.containerLeitura}>
