@@ -3,7 +3,7 @@ import { AtivoComEncontrado } from "@/app/(tabs)/inventario";
 import { AtivosMapa } from "@/app/(tabs)/mapa";
 import { CentroDivisao } from "@/components/CentrosDeCustosSelect";
 import { CentrosAplica } from "@/components/EditModal";
-import { Ativo, AtivosInventario, Inventario } from "@/types";
+import { Ativo, AtivosInventario, AtivoToInsert, Inventario } from "@/types";
 import { SQLiteDatabase } from "expo-sqlite";
 
 type InserirAtivosParams = {
@@ -38,12 +38,12 @@ export async function inserirAtivos({
           comentarios: String(row.comentarios ?? ""),
           categoria: String(row.categoria ?? ""),
           localizacao: String(row.localizacao ?? ""),
-          centroDeCustos: String(row.centroDeCustos ?? ""),
+          centroDeCustos: String(row.centrodecustos ?? ""),
           subdivisao: String(row.subdivisao ?? ""),
-          dataHoraInventariado: String(row.dataHoraInventariado ?? ""),
+          dataHoraInventariado: String(row.datahorainventariado ?? ""),
           status: Number(row.status ?? 0),
           dataHoraCriacao: String(row.dataHoraCriacao ?? ""),
-          dataHoraAtualizacao: String(row.dataHoraAtualizacao ?? ""),
+          dataHoraAtualizacao: String(row.datahoraatualizacao ?? ""),
         };
         await db.runAsync(
           `INSERT INTO tbAtivos
@@ -97,6 +97,14 @@ export async function buscarTodosAtivos(
   }
 }
 
+export async function buscarAtivoPeloCodigo(db: SQLiteDatabase, codigo: string){
+
+  const res = await db.getFirstAsync(`SELECT codigo_ativo FROM tbAtivos WHERE codigo_ativo = ?`, [codigo]);
+
+  return res;
+
+}
+
 export async function buscarAtivosInventario(
   inventarioId: number,
   db: SQLiteDatabase,
@@ -122,7 +130,7 @@ export async function buscarAtivosInventario(
     (
       SELECT
         IIF(C.id IS NULL, 0, 1) AS Encontrado,
-        C.id,
+        A.id,
         A.codigo_ativo,
         A.descricao,
         A.comentarios,
@@ -150,24 +158,6 @@ export async function buscarAtivosInventario(
             C.novaSubdivisao
         FROM
             tbAtivosInventario AS C
-        INNER JOIN
-            tbCentrosInventarios AS B
-        ON
-          (
-            B.inventario_id = C.inventario_id
-            AND B.centroDeCustos = IIF(
-                C.novoCentroDeCustos IS NULL,
-                C.centroDeCustos,
-                C.novoCentroDeCustos
-            )
-            AND B.subdivisao = IIF(
-                C.novaSubdivisao IS NULL,
-                C.subdivisao,
-                C.novaSubdivisao
-            )
-        )
-        WHERE
-            C.inventario_id = '${inventarioId}'
         ) AS C
       ON
     (
@@ -295,36 +285,38 @@ export async function getAtivosInventariosHistorico(
   db: SQLiteDatabase,
   inventarioId: number,
 ) {
+
   return await db.getAllAsync<AtivosInventario>(`
-      SELECT
-          C.codigo_inventario,
-          A.codigo_ativo,
-          A.descricao_ativo,
-          A.categoria_ativo,
-          A.centroDeCustos,
-          A.subdivisao,
-          A.novoCentroDeCustos,
-          A.novaSubdivisao,
-          A.latitude,
-          A.longitude,
-          A.accuracy,
-          A.comentarios_ativo,
-          IIF(A.inputType=1,'X','') AS RFID,
-          A.dataHoraInventariado
-      FROM
-        tbAtivosInventario AS A
+    SELECT 
+        A.usuario_responsavel,
+        C.codigo_inventario,
+        A.codigo_ativo,
+        A.descricao_ativo,
+        A.categoria_ativo,
+        A.centroDeCustos,
+        A.subdivisao,
+        A.novoCentroDeCustos,
+        A.novaSubdivisao,
+        A.latitude,
+        A.longitude,
+        A.accuracy,
+        A.comentarios,
+        IIF(A.inputType=1,'X','') AS RFID,
+        A.dataHoraInventariado
+      FROM 
+    tbAtivosInventario AS A
       INNER JOIN
-        tbAtivos AS B
+    tbAtivos AS B
       ON
-        A.codigo_ativo = B.codigo_ativo AND
-        A.inventario_id = B.inventario_id
+    A.codigo_ativo = B.codigo_ativo AND
+    A.inventario_id = B.inventario_id
       INNER JOIN
-        tbInventarios AS C
+    tbInventarios AS C
       ON
-        C.id = A.inventario_id
-      WHERE 
-        C.id = ${inventarioId}
-        `);
+    A.inventario_id = C.id
+      WHERE
+    A.inventario_id = ${inventarioId};
+      ORDER BY A.codigo_ativo`);
 }
 
 export async function buscarAtivosInventarioDashboard(
@@ -342,8 +334,8 @@ export async function buscarAtivosInventarioDashboard(
             FROM
             (
               SELECT DISTINCT
-                IIF(C.novoCentroDeCustos IS NULL,B.centroDeCustos,C.novoCentroDeCustos) AS centroDeCustos,
-				IIF(C.novaSubdivisao IS NULL,B.subdivisao,C.novaSubdivisao) AS subdivisao,
+                IIF(C.novoCentroDeCustos IS NULL,A.centroDeCustos,C.novoCentroDeCustos) AS centroDeCustos,
+				        IIF(C.novaSubdivisao IS NULL,A.subdivisao,C.novaSubdivisao) AS subdivisao,
                 A.codigo_ativo,
                 1 AS Total,
                 IIF(C.codigo_ativo IS NULL,0,1) AS Realizado
@@ -364,11 +356,10 @@ export async function buscarAtivosInventarioDashboard(
                   subdivisao
                 FROM
                   tbCentrosInventarios
-                WHERE
-                  inventario_id = '${id}'
               ) AS B
               ON
               (
+                B.inventario_id = A.inventario_id AND
                 B.centroDeCustos = IIF(C.novoCentroDeCustos IS NULL, A.centroDeCustos, C.novoCentroDeCustos) AND
                 B.subdivisao = IIF(C.novaSubdivisao IS NULL, A.subdivisao, C.novaSubdivisao)
               )
@@ -393,9 +384,10 @@ export async function inserirAtivo(
     await db.runAsync(`
 INSERT INTO tbAtivosInventario (
   inventario_id,
+  usuario_responsavel,
   codigo_ativo,
   descricao_ativo,
-  comentarios_ativo, 
+  comentarios, 
   categoria_ativo, 
   inputType, 
   latitude, 
@@ -409,10 +401,11 @@ INSERT INTO tbAtivosInventario (
 )
 VALUES (
   ${ativoInventario.inventario_id}, 
+  '${ativoInventario.usuario_responsavel}',
   '${ativoInventario.codigo_ativo}', 
-  '${ativoInventario.descricao_ativo}', 
-  '${ativoInventario.comentarios_ativo}', 
-  '${ativoInventario.categoria_ativo}', 
+  '${ativoInventario.descricao}', 
+  '${ativoInventario.comentarios}', 
+  '${ativoInventario.categoria}', 
   ${ativoInventario.inputType}, 
   '${ativoInventario.latitude}', 
   '${ativoInventario.longitude}', 
@@ -440,12 +433,48 @@ DO UPDATE SET
   subdivisao = excluded.subdivisao,
   novoCentroDeCustos = excluded.novoCentroDeCustos,
   novaSubdivisao = excluded.novaSubdivisao,
-  comentarios_ativo = excluded.comentarios_ativo,
+  comentarios = excluded.comentarios,
   dataHoraInventariado = excluded.dataHoraInventariado;
 `);
   } catch (err) {
     console.log(err);
   }
+}
+
+export async function inserirAtivoLista(db: SQLiteDatabase, ativo: AtivoToInsert){
+
+  const ativoFormatado: AtivoToInsert = {
+    inventario_id: ativo.inventario_id,
+    codigo_ativo: ativo.codigo_ativo,
+    descricao: ativo.descricao,
+    comentarios: ativo.comentarios,
+    categoria: ativo.categoria,
+    centroDeCustos: ativo.centroDeCustos,
+    subdivisao: ativo.subdivisao,
+    dataHoraInventariado: ativo.dataHoraInventariado,
+    status: ativo.status,
+    dataHoraCriacao: ativo.dataHoraCriacao,
+    dataHoraAtualizacao: ativo.dataHoraAtualizacao
+  }
+
+  const values = Object.values(ativoFormatado).map(v => typeof v === "string" ? v.trim() : v);
+
+  const res = await db.runAsync(`INSERT INTO tbAtivos (
+      inventario_id,
+      codigo_ativo,
+      descricao,
+      comentarios,
+      categoria,
+      centroDeCustos,
+      subdivisao,
+      dataHoraInventariado,
+      status,
+      dataHoraCriacao,
+      dataHoraAtualizacao 
+    )
+      VALUES (?,?,?,?,?,?,?,?,?,?,?)`, [...values]);
+
+      return res.lastInsertRowId;
 }
 
 export async function contarAtivos(db: SQLiteDatabase, id: number) {

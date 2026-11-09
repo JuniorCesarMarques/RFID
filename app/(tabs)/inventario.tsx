@@ -76,6 +76,8 @@ export default function TelaInventario() {
   const [valorFiltro, setValorFiltro] = useState("");
   const [campoFiltro, setCampoFiltro] = useState("codigo_ativo");
 
+  console.log(ativosInventario.filter(a => a.Encontrado === 2));
+
   let ativosPorStatus;
   switch (selectedTab) {
     // Lidos
@@ -90,9 +92,13 @@ export default function TelaInventario() {
     case 3:
       ativosPorStatus = ativosInventario.filter((a) => a.Encontrado === 2);
       break;
+    // Extras 2
+    case 4:
+      ativosPorStatus = ativosInventario.filter((a) => a.Encontrado === 3);
+      break;
     // Todos
     default:
-      ativosPorStatus = ativosInventario.filter((a) => a.Encontrado !== 2);
+      ativosPorStatus = ativosInventario.filter((a) => a.Encontrado === 1 || a.Encontrado === 0);
   }
 
   const {
@@ -187,9 +193,13 @@ export default function TelaInventario() {
 
     if (!inventarioAtual) return;
 
-    const ativos = await buscarAtivosInventario(inventarioAtual.id, db);
+    try {
+      const ativos = await buscarAtivosInventario(inventarioAtual.id, db);
 
-    setAtivosInventario(ativos);
+      setAtivosInventario(ativos);
+    } catch (err) {
+      console.log("Erro ao buscar ativosInventario");
+    }
   };
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
@@ -269,7 +279,7 @@ export default function TelaInventario() {
 
       setAtivosInventario(res);
     } catch (error) {
-      console.error("Erro ao buscar ativos:", error);
+      console.error("Erro ao buscar ativosInventario:", error);
     } finally {
       setLoading(false);
     }
@@ -323,7 +333,6 @@ export default function TelaInventario() {
       });
     }
   };
-
 
   return (
     <View style={styles.container}>

@@ -31,6 +31,8 @@ export default function useLeitura() {
   const [rssi, setRssi] = useState<number | null>(null);
   const lastEpc = useRef<string>("");
 
+  const [considerarExtras, setConsiderarExtras] = useState(false);
+
   const [buscandoAtivo, setBuscandoAtivo] = useState<boolean>(false);
 
   const teveLeitura = useRef(false);
@@ -46,6 +48,10 @@ export default function useLeitura() {
       setQtdAtivos(res.total);
     }
   }, [db, inventarioAtual?.id]);
+
+  const toggleExtras = () => {
+    setConsiderarExtras((prev) => !prev);
+  }
 
 
   const leituraManual = async ({
@@ -92,15 +98,16 @@ export default function useLeitura() {
       const ativoInventario = {
         usuario_responsavel: inventarioAtual.usuario_responsavel,
         inputType: 0,
+        extra: ativo ? 0 : 1,
         latitude,
         longitude,
         accuracy,
         timestamp,
         codigo_ativo: ativo?.codigo_ativo ?? codigo,
         inventario_id: inventarioAtual.id,
-        descricao_ativo: ativo?.descricao ?? "",
-        comentarios_ativo: data.comentarios ?? ativo?.comentarios ?? "",
-        categoria_ativo: ativo?.categoria ?? "",
+        descricao: ativo?.descricao ?? "",
+        comentarios: data.comentarios ?? ativo?.comentarios ?? "",
+        categoria: ativo?.categoria ?? "",
         centroDeCustos: ativo?.centroDeCustos ?? "",
         subdivisao: ativo?.subdivisao ?? "",
         novoCentroDeCustos:
@@ -166,20 +173,21 @@ export default function useLeitura() {
       (a) => codigo === a.codigo_ativo && a.inventario_id == inventarioAtual.id,
     );
 
-    if (!ativo) return;
+    if (considerarExtras && !ativo) return;
 
     const ativoInventario: AtivosInventario = {
       usuario_responsavel: inventarioAtual.usuario_responsavel,
       inputType: 1,
+      extra: ativo ? 0 : 1,
       latitude,
       longitude,
       accuracy,
       timestamp,
       codigo_ativo: ativo?.codigo_ativo ?? codigo,
       inventario_id: inventarioAtual.id,
-      descricao_ativo: ativo?.descricao ?? "",
-      comentarios_ativo: ativo?.comentarios ?? "",
-      categoria_ativo: ativo?.categoria ?? "",
+      descricao: ativo?.descricao ?? "",
+      comentarios: ativo?.comentarios ?? "",
+      categoria: ativo?.categoria ?? "",
       centroDeCustos: ativo?.centroDeCustos ?? "",
       subdivisao: ativo?.subdivisao ?? "",
       novoCentroDeCustos: novoCentroDeCustos ?? null,
@@ -232,6 +240,8 @@ export default function useLeitura() {
   return {
     leitura,
     leituraManual,
+    considerarExtras,
+    toggleExtras,
     qtdAtivos,
     atualizarQtdAtivos,
     rssi,

@@ -47,12 +47,13 @@ export type CentrosInventariosType = {
 
 export type AtivosInventario = {
   inputType: number;
+  extra: number;
   inventario_id: number;
   usuario_responsavel: string;
   codigo_ativo: string;
-  descricao_ativo: string;
-  categoria_ativo: string;
-  comentarios_ativo: string;
+  descricao: string;
+  categoria: string;
+  comentarios: string;
   timestamp: number;
   latitude: number;
   longitude: number;

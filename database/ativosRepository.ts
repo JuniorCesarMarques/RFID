@@ -109,60 +109,48 @@ export async function buscarAtivosInventario(
   inventarioId: number,
   db: SQLiteDatabase,
 ) {
+  try {
+
+  }catch(err){
+    console.log("Erro ao buscar AtivosInventario")
+  }
   const centroInventarios = await db.getAllAsync<AtivoComEncontrado>(`
       SELECT
         A.Encontrado,
         A.id,
+        A.inventario_id,
         A.codigo_ativo,
         A.descricao AS descricao_ativo,
         A.comentarios,
         A.categoria,
-        A.localizacao,
         A.centroDeCustos,
         A.subdivisao,
         A.novoCentroDeCustos,
         A.novaSubdivisao,
-        A.dataHoraInventariado,
-        A.status,
-        A.dataHoraCriacao,
-        A.dataHoraAtualizacao
+        A.dataHoraInventariado
     FROM
     (
       SELECT
         IIF(C.id IS NULL, 0, 1) AS Encontrado,
         A.id,
+        C.inventario_id,
         A.codigo_ativo,
         A.descricao,
         A.comentarios,
         A.categoria,
-        A.localizacao,
         A.centroDeCustos,
         A.subdivisao,
         C.novoCentroDeCustos,
         C.novaSubdivisao,
-        A.dataHoraInventariado,
-        A.status,
-        A.dataHoraCriacao,
-        A.dataHoraAtualizacao
+        A.dataHoraInventariado
     FROM
         tbAtivos AS A
     LEFT JOIN
-        (
-        SELECT
-            C.id,
-            C.inventario_id,
-            C.codigo_ativo,
-            C.centroDeCustos,
-            C.subdivisao,
-            C.novoCentroDeCustos,
-            C.novaSubdivisao
-        FROM
-            tbAtivosInventario AS C
-        ) AS C
+        tbAtivosInventario AS C
       ON
     (
-      C.inventario_id = A.inventario_id AND 
-      C.codigo_ativo = A.codigo_ativo 
+      A.inventario_id = C.inventario_id AND 
+      A.codigo_ativo = C.codigo_ativo 
     )
       INNER JOIN
         tbCentrosInventarios B
@@ -171,53 +159,36 @@ export async function buscarAtivosInventario(
         IIF(C.novoCentroDeCustos IS NULL, A.centroDeCustos, C.novoCentroDeCustos) = B.centroDeCustos AND
         IIF(C.novaSubdivisao IS NULL, A.subdivisao, C.novaSubdivisao) = B.subdivisao
     WHERE
-        A.inventario_id = '${inventarioId}'
-      UNION ALL
+      A.inventario_id = '${inventarioId}'
+  ) AS A  
+    UNION ALL
       SELECT
-        2 AS Encontrado,
-        C.id,
+        IIF(A.extra = 0, 2, 3) AS Encontrado,
+        A.id,
+        A.inventario_id,
         A.codigo_ativo,
-        A.descricao,
+        A.descricao AS descricao_ativo,
         A.comentarios,
         A.categoria,
-        A.localizacao,
         A.centroDeCustos,
         A.subdivisao,
-        C.novoCentroDeCustos,
-        C.novaSubdivisao,
-        A.dataHoraInventariado,
-        A.status,
-        A.dataHoraCriacao,
-        A.dataHoraAtualizacao
+        A.novoCentroDeCustos,
+        A.novaSubdivisao,
+        A.dataHoraInventariado
       FROM
-        tbAtivos AS A
-      INNER JOIN
-        tbAtivosInventario AS C
-      ON
-      (
-        C.inventario_id = A.inventario_id
-        AND C.codigo_ativo = A.codigo_ativo
-      )
+        tbAtivosInventario AS A
       LEFT JOIN
         tbCentrosInventarios AS B
       ON
       (
-        B.inventario_id = C.inventario_id
-        AND B.centroDeCustos = IIF(
-        C.novoCentroDeCustos IS NULL,
-        C.centroDeCustos,
-        C.novoCentroDeCustos
+        B.inventario_id = A.inventario_id
+        AND B.centroDeCustos = IIF(A.novoCentroDeCustos IS NULL, A.centroDeCustos, A.novoCentroDeCustos) 
+      AND
+        B.subdivisao = IIF(A.novaSubdivisao IS NULL, A.subdivisao, A.novaSubdivisao)
       )
-        AND B.subdivisao = IIF(
-        C.novaSubdivisao IS NULL,
-        C.subdivisao,
-        C.novaSubdivisao
-        )
-    )
     WHERE
         A.inventario_id = '${inventarioId}'
         AND B.inventario_id IS NULL
-    ) AS A
     ORDER BY
       A.centroDeCustos,
       A.subdivisao,
@@ -226,6 +197,8 @@ export async function buscarAtivosInventario(
 
   return centroInventarios;
 }
+
+
 
 export async function buscarTodosOsCentros(db: SQLiteDatabase) {
   const centros = await db.getAllAsync<CentroDivisao>(`
@@ -291,8 +264,8 @@ export async function getAtivosInventariosHistorico(
         A.usuario_responsavel,
         C.codigo_inventario,
         A.codigo_ativo,
-        A.descricao_ativo,
-        A.categoria_ativo,
+        A.descricao,
+        A.categoria,
         A.centroDeCustos,
         A.subdivisao,
         A.novoCentroDeCustos,
@@ -300,12 +273,21 @@ export async function getAtivosInventariosHistorico(
         A.latitude,
         A.longitude,
         A.accuracy,
-        A.comentarios_ativo,
+        A.comentarios,
         IIF(A.inputType=1,'X','') AS RFID,
-        A.dataHoraInventariado
+        A.dataHoraInventariado,
+        A.Extra
       FROM 
-    tbAtivosInventario AS A
-      INNER JOIN
+      (
+        SELECT *, IIF(B.id IS NULL, 'X', '') AS Extra FROM tbAtivosInventario AS A
+          LEFT JOIN
+        tbCentrosInventarios AS B
+          ON
+        A.inventario_id = B.inventario_id AND
+        IIF(A.novoCentroDeCustos IS NULL, A.centroDeCustos, A.novoCentroDeCustos) = B.centroDeCustos AND
+        IIF(A.novaSubdivisao IS NULL, A.subdivisao, A.novaSubdivisao) = B.subdivisao
+      ) AS A
+  INNER JOIN
     tbAtivos AS B
       ON
     A.codigo_ativo = B.codigo_ativo AND
@@ -382,59 +364,61 @@ export async function inserirAtivo(
 ) {
   try {
     await db.runAsync(`
-INSERT INTO tbAtivosInventario (
-  inventario_id,
-  usuario_responsavel,
-  codigo_ativo,
-  descricao_ativo,
-  comentarios_ativo, 
-  categoria_ativo, 
-  inputType, 
-  latitude, 
-  longitude, 
-  accuracy,  
-  centroDeCustos, 
-  subdivisao,
-  novoCentroDeCustos,
-  novaSubdivisao, 
-  dataHoraInventariado
-)
-VALUES (
-  ${ativoInventario.inventario_id}, 
-  '${ativoInventario.usuario_responsavel}',
-  '${ativoInventario.codigo_ativo}', 
-  '${ativoInventario.descricao_ativo}', 
-  '${ativoInventario.comentarios_ativo}', 
-  '${ativoInventario.categoria_ativo}', 
-  ${ativoInventario.inputType}, 
-  '${ativoInventario.latitude}', 
-  '${ativoInventario.longitude}', 
-  '${ativoInventario.accuracy}',  
-  '${ativoInventario.centroDeCustos}', 
-  '${ativoInventario.subdivisao}', 
-  ${
-    ativoInventario.novoCentroDeCustos == null
-      ? "NULL"
-      : `'${ativoInventario.novoCentroDeCustos}'`
-  }, 
-  ${
-    ativoInventario.novaSubdivisao == null
-      ? "NULL"
-      : `'${ativoInventario.novaSubdivisao}'`
-  }, 
-  '${ativoInventario.dataHoraInventariado}'
-)
-ON CONFLICT(inventario_id, codigo_ativo, centroDeCustos, subdivisao)
-DO UPDATE SET
-  latitude = IIF(excluded.accuracy < accuracy, excluded.latitude, latitude),
-  longitude = IIF(excluded.accuracy < accuracy, excluded.longitude, longitude),
-  accuracy = IIF(excluded.accuracy < accuracy, excluded.accuracy, accuracy),
-  centroDeCustos = excluded.centroDeCustos,
-  subdivisao = excluded.subdivisao,
-  novoCentroDeCustos = excluded.novoCentroDeCustos,
-  novaSubdivisao = excluded.novaSubdivisao,
-  comentarios_ativo = excluded.comentarios_ativo,
-  dataHoraInventariado = excluded.dataHoraInventariado;
+    INSERT INTO tbAtivosInventario (
+      inventario_id,
+      usuario_responsavel,
+      codigo_ativo,
+      extra,
+      descricao,
+      comentarios, 
+      categoria, 
+      inputType, 
+      latitude, 
+      longitude, 
+      accuracy,  
+      centroDeCustos, 
+      subdivisao,
+      novoCentroDeCustos,
+      novaSubdivisao, 
+      dataHoraInventariado
+    )
+    VALUES (
+      ${ativoInventario.inventario_id}, 
+      '${ativoInventario.usuario_responsavel}',
+      '${ativoInventario.codigo_ativo}',
+        ${ativoInventario.extra}, 
+      '${ativoInventario.descricao}', 
+      '${ativoInventario.comentarios}', 
+      '${ativoInventario.categoria}', 
+      ${ativoInventario.inputType}, 
+      '${ativoInventario.latitude}', 
+      '${ativoInventario.longitude}', 
+      '${ativoInventario.accuracy}',  
+      '${ativoInventario.centroDeCustos}', 
+      '${ativoInventario.subdivisao}', 
+      ${
+        ativoInventario.novoCentroDeCustos == null
+          ? "NULL"
+          : `'${ativoInventario.novoCentroDeCustos}'`
+      }, 
+      ${
+        ativoInventario.novaSubdivisao == null
+          ? "NULL"
+          : `'${ativoInventario.novaSubdivisao}'`
+      }, 
+      '${ativoInventario.dataHoraInventariado}'
+    )
+    ON CONFLICT(inventario_id, codigo_ativo, centroDeCustos, subdivisao)
+    DO UPDATE SET
+      latitude = IIF(excluded.accuracy < accuracy, excluded.latitude, latitude),
+      longitude = IIF(excluded.accuracy < accuracy, excluded.longitude, longitude),
+      accuracy = IIF(excluded.accuracy < accuracy, excluded.accuracy, accuracy),
+      centroDeCustos = excluded.centroDeCustos,
+      subdivisao = excluded.subdivisao,
+      novoCentroDeCustos = excluded.novoCentroDeCustos,
+      novaSubdivisao = excluded.novaSubdivisao,
+      comentarios = excluded.comentarios,
+      dataHoraInventariado = excluded.dataHoraInventariado;
 `);
   } catch (err) {
     console.log(err);
@@ -501,8 +485,8 @@ export async function buscarAtivosMapa(
     `SELECT 
         A.latitude, 
         A.longitude, 
-        A.descricao_ativo,
-        A.categoria_ativo,
+        A.descricao,
+        A.categoria,
         A.codigo_ativo,
         1 AS Aplica
       FROM 

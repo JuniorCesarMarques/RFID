@@ -83,9 +83,9 @@ export default function App() {
                   longitude: Number(a.longitude),
                 }}
                 title={a.codigo_ativo}
-                description={a.descricao_ativo}
+                description={a.descricao}
               >
-                <GetIcon descricao={a.descricao_ativo} />
+                <GetIcon descricao={a.descricao} />
               </Marker>
             );
           }

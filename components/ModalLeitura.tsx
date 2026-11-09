@@ -6,7 +6,7 @@ import useLeitura from "@/hooks/leitura";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useFocusEffect } from "@react-navigation/native";
 import { Dispatch, useCallback, useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
 import AlertComponent from "./AlertComponent";
 import CentrosDeCustosSelect, { CentroDivisao } from "./CentrosDeCustosSelect";
@@ -14,6 +14,7 @@ import EmptyLeituraState from "./EmptyLeituraState";
 import FiltroSeletor from "./FiltroSeletor";
 import LeituraManual from "./LeituraManual";
 import ModalGenerico from "./ModalGenerico";
+import Checkbox from "expo-checkbox";
 
 type ModalLeituraType = {
   onCloseModal: () => void;
@@ -33,21 +34,25 @@ export default function ModalLeitura({
   setModalState,
   totalAtivos,
 }: ModalLeituraType) {
-
-
   const { ativos } = useAtivo();
 
   const { count, resetReading, dispositivoConectado } = useBluetooth();
 
-  const { leitura, leituraManual, qtdAtivos, atualizarQtdAtivos, teveLeitura } =
-    useLeitura();
+  const {
+    leitura,
+    leituraManual,
+    qtdAtivos,
+    atualizarQtdAtivos,
+    teveLeitura,
+    considerarExtras,
+    toggleExtras,
+  } = useLeitura();
 
   const { inventarioAtual } = useInventarios();
 
   const [modo, setModo] = useState<number>(0);
 
   const [filtro, setFiltro] = useState<CentroDivisao[]>([]);
-  const [considerarExtras, setConsiderarExtras] = useState(false);
 
   const [cdcSelecionado, setCdcSelecionado] = useState<CentroDivisao | null>(
     null,
@@ -59,13 +64,11 @@ export default function ModalLeitura({
     return ativos.some((a) => a.inventario_id == inventarioAtual?.id);
   }, [ativos, inventarioAtual?.id]);
 
-
-
-useEffect(() => {
-  if (modalState) {
-    atualizarQtdAtivos();
-  }
-}, [modalState, atualizarQtdAtivos]);
+  useEffect(() => {
+    if (modalState) {
+      atualizarQtdAtivos();
+    }
+  }, [modalState, atualizarQtdAtivos]);
 
   const closeModal = () => {
     setModalState(false);
@@ -119,11 +122,10 @@ useEffect(() => {
   };
 
   useEffect(() => {
-    if(modalState){
+    if (modalState) {
       resetFiltrosState();
     }
   }, [inventarioAtual?.id, modalState]);
-
 
   return (
     <ModalGenerico
@@ -166,6 +168,11 @@ useEffect(() => {
               />
             </View>
 
+            <TouchableOpacity onPress={() => toggleExtras()} style={styles.checkbox}>
+              <Text>Extras</Text>
+              <Checkbox value={considerarExtras}  />
+            </TouchableOpacity>
+
             <SegmentedControl
               style={styles.segmented}
               values={["RFID", "Manual"]}
@@ -175,7 +182,6 @@ useEffect(() => {
                 setModo(event.nativeEvent.selectedSegmentIndex)
               }
             />
-            
 
             {!modo && dispositivoConectado ? (
               <View style={styles.containerLeitura}>
@@ -192,7 +198,11 @@ useEffect(() => {
                 </Text>
               </View>
             ) : (
-              <LeituraManual checked={incluirManualInfo} setChecked={setIncluirManualInfo} onSubmit={handleSubmit} />
+              <LeituraManual
+                checked={incluirManualInfo}
+                setChecked={setIncluirManualInfo}
+                onSubmit={handleSubmit}
+              />
             )}
           </ScrollView>
         </View>
@@ -255,6 +265,13 @@ const styles = StyleSheet.create({
   segmented: {
     width: "90%",
     marginBottom: 20,
+  },
+
+  checkbox: {
+    flexDirection: "row",
+    width: "100%",
+    paddingHorizontal: 30,
+    gap: 10
   },
 
   titulo: {
