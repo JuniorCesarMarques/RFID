@@ -46,6 +46,7 @@ import Toast from "react-native-toast-message";
 
 export type AtivoComEncontrado = AtivosInventario & {
   id: number;
+  valor: number | null;
   Encontrado: number;
 };
 
@@ -76,7 +77,7 @@ export default function TelaInventario() {
   const [valorFiltro, setValorFiltro] = useState("");
   const [campoFiltro, setCampoFiltro] = useState("codigo_ativo");
 
-  console.log(ativosInventario.filter(a => a.Encontrado === 2));
+  console.log(ativosInventario.filter(a => a.Encontrado === 3));
 
   let ativosPorStatus;
   switch (selectedTab) {

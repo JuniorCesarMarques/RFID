@@ -31,7 +31,7 @@ export default function useLeitura() {
   const [rssi, setRssi] = useState<number | null>(null);
   const lastEpc = useRef<string>("");
 
-  const [considerarExtras, setConsiderarExtras] = useState(false);
+  const [naoCadastrado, setNaoCadastrado] = useState(false);
 
   const [buscandoAtivo, setBuscandoAtivo] = useState<boolean>(false);
 
@@ -49,8 +49,8 @@ export default function useLeitura() {
     }
   }, [db, inventarioAtual?.id]);
 
-  const toggleExtras = () => {
-    setConsiderarExtras((prev) => !prev);
+  const toggleNaoCadastrados = () => {
+    setNaoCadastrado((prev) => !prev);
   }
 
 
@@ -95,10 +95,10 @@ export default function useLeitura() {
 
 
     try {
-      const ativoInventario = {
+      const ativoInventario: AtivosInventario = {
         usuario_responsavel: inventarioAtual.usuario_responsavel,
         inputType: 0,
-        extra: ativo ? 0 : 1,
+        nao_cadastrado: ativo ? 0 : 1,
         latitude,
         longitude,
         accuracy,
@@ -173,12 +173,12 @@ export default function useLeitura() {
       (a) => codigo === a.codigo_ativo && a.inventario_id == inventarioAtual.id,
     );
 
-    if (considerarExtras && !ativo) return;
+    if (!naoCadastrado && !ativo) return;
 
     const ativoInventario: AtivosInventario = {
       usuario_responsavel: inventarioAtual.usuario_responsavel,
       inputType: 1,
-      extra: ativo ? 0 : 1,
+      nao_cadastrado: ativo ? 0 : 1,
       latitude,
       longitude,
       accuracy,
@@ -240,8 +240,8 @@ export default function useLeitura() {
   return {
     leitura,
     leituraManual,
-    considerarExtras,
-    toggleExtras,
+    naoCadastrado,
+    toggleNaoCadastrados,
     qtdAtivos,
     atualizarQtdAtivos,
     rssi,

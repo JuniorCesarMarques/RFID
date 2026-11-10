@@ -11,6 +11,7 @@ export default function TodosAtivosCard({ ativo }: { ativo: Ativo }) {
         {ativo?.centroDeCustos}
       </Text>
       <Text style={[styles.cell, styles.wSubdivisao]}>{ativo?.subdivisao}</Text>
+      <Text style={[styles.cell, styles.wValor]}>{ativo?.valor}</Text>
     </View>
   );
 }
@@ -35,4 +36,5 @@ const styles = StyleSheet.create({
   wDescricao: { width: 200 },
   wCategoria: { width: 150 },
   wSubdivisao: { width: 150 },
+  wValor: { width: 100 }
 });

@@ -34,7 +34,6 @@ export default function Ativos() {
 
   const [ativosLoading, setAtivosLoading] = useState(false);
 
-
   const {
     errorsModalState,
     errosPreview,
@@ -288,6 +287,7 @@ export default function Ativos() {
                   <Text style={[styles.cellHeader, styles.cellSubdivisao]}>
                     Subdivisão
                   </Text>
+                  <Text style={[styles.cellHeader]}>Valor</Text>
                 </View>
                 <ScrollView showsVerticalScrollIndicator={true}>
                   <View style={styles.listContainer}>
@@ -418,6 +418,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   cellCodigo: {
+    width: 100,
+  },
+  cellValor: {
     width: 100,
   },
   cellDescricao: {

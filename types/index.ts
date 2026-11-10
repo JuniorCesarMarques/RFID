@@ -1,6 +1,7 @@
 export type Ativo = {
   inventario_id: number;
   codigo_ativo: string;
+  valor: number;
   descricao: string;
   comentarios: string;
   categoria: string;
@@ -47,7 +48,7 @@ export type CentrosInventariosType = {
 
 export type AtivosInventario = {
   inputType: number;
-  extra: number;
+  nao_cadastrado: number;
   inventario_id: number;
   usuario_responsavel: string;
   codigo_ativo: string;

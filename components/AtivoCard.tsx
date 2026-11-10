@@ -60,9 +60,7 @@ export default function AtivoCard({
         )}
       </View>
       <Text style={[styles.cell, styles.wCodigo]}>{ativo.codigo_ativo}</Text>
-      <Text style={[styles.cell, styles.wDescricao]}>
-        {ativo.descricao_ativo}
-      </Text>
+      <Text style={[styles.cell, styles.wDescricao]}>{ativo.descricao}</Text>
       <Text style={[styles.cell, styles.wCentroDeCustos]}>
         {ativo.centroDeCustos}
       </Text>
@@ -70,7 +68,10 @@ export default function AtivoCard({
         {ativo.novoCentroDeCustos}
       </Text>
       <Text style={[styles.cell, styles.wSubdivisao]}>{ativo.subdivisao}</Text>
-      <Text style={[styles.cell, styles.wSubdivisao]}>{ativo.novaSubdivisao}</Text>
+      <Text style={[styles.cell, styles.wSubdivisao]}>
+        {ativo.novaSubdivisao}
+      </Text>
+      <Text style={[styles.cell, styles.wValor]}>{ativo.valor}</Text>
     </Pressable>
   );
 }
@@ -104,11 +105,11 @@ const styles = StyleSheet.create({
 
   // LARGURAS FIXAS (IMPORTANTE: iguais ao ListaAtivos)
   wBuscar: { width: 100 },
-  wCodigo: { width: 100 },
+  wCodigo: { width: 120 },
   wStatus: { width: 100 },
   wDescricao: { width: 200 },
   wCategoria: { width: 150 },
   wCentroDeCustos: { width: 150 },
   wSubdivisao: { width: 150 },
-  wEditar: { width: 70 },
+  wValor: { width: 80 },
 });

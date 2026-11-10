@@ -44,8 +44,8 @@ export default function ModalLeitura({
     qtdAtivos,
     atualizarQtdAtivos,
     teveLeitura,
-    considerarExtras,
-    toggleExtras,
+    naoCadastrado,
+    toggleNaoCadastrados,
   } = useLeitura();
 
   const { inventarioAtual } = useInventarios();
@@ -168,9 +168,9 @@ export default function ModalLeitura({
               />
             </View>
 
-            <TouchableOpacity onPress={() => toggleExtras()} style={styles.checkbox}>
-              <Text>Extras</Text>
-              <Checkbox value={considerarExtras}  />
+            <TouchableOpacity onPress={() => toggleNaoCadastrados()} style={styles.checkbox}>
+              <Text>Não Cadastrados</Text>
+              <Checkbox value={naoCadastrado} />
             </TouchableOpacity>
 
             <SegmentedControl

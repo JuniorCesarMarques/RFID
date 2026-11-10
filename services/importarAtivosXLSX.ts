@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 
 const requiredColumns = [
   "codigo_ativo",
+  "valor",
   "descricao",
   "comentarios",
   "centrodecustos",
@@ -59,7 +60,6 @@ export const importarAtivosXLSX = async ({
     return { ok: false, motivo: "inventario_nao_selecionado" };
 
   try {
-
     const file = result.assets[0];
 
     const response = await fetch(file.uri);
@@ -96,9 +96,6 @@ export const importarAtivosXLSX = async ({
       (col) => !columnsNormalized.includes(col),
     );
 
-    console.log("MISSING", missing)
-    console.log("COLUNS NORMALIZED:", columnsNormalized)
-
     if (missing.length) {
       return {
         ok: false,
@@ -121,6 +118,11 @@ export const importarAtivosXLSX = async ({
         field: "codigo_ativo",
         label: "Código",
         regex: /^[a-zA-Z0-9]+$/,
+      },
+      {
+        field: "valor",
+        label: "Valor",
+        regex: /^\d+$/,
       },
       {
         field: "descricao",
@@ -160,11 +162,10 @@ export const importarAtivosXLSX = async ({
       for (let i = 0; i < rawData.length; i++) {
         const value = normalizedData[i][validation.field] ?? "";
 
-
         if (!validation.regex.test(value)) {
           erros.push({
             linha: i + 2,
-            erro: `${validation.label} com valor inválido.`,
+            erro: `Coluna ${validation.label} com valor inválido.`,
           });
         }
       }
@@ -173,8 +174,6 @@ export const importarAtivosXLSX = async ({
     erros.sort((a, b) => a.linha - b.linha);
 
     if (erros.length) return { ok: false, motivo: "erros", erros: erros };
-
-    console.log("NORMALIZED DATA1", normalizedData);
 
     await inserirAtivos({ db, inventarioAtual, data: normalizedData });
 

@@ -15,7 +15,7 @@ export default function HeaderAtivos() {
       </Text>
       <Text style={[styles.cellHeader, styles.wSubdivisao]}>Subdivisão</Text>
       <Text style={[styles.cellHeader, styles.wSubdivisao]}>Nova subdivisão</Text>
-      {/* {abaLidos && <Text style={[styles.cellHeader, styles.wEditar]}>Editar</Text>} */}
+      <Text style={[styles.cellHeader, styles.wValor]}>Valor</Text>
     </View>
   );
 }
@@ -37,14 +37,15 @@ const styles = StyleSheet.create({
     borderColor: "#e2e8f0",
     paddingVertical: 10,
     paddingHorizontal: 8,
+    
   },
 
   wBuscar: { width: 100 },
-  wCodigo: { width: 100 },
+  wCodigo: { width: 120 },
   wStatus: { width: 100 },
   wDescricao: { width: 200 },
   wCategoria: { width: 150 },
   wCentroDeCustos: { width: 150 },
   wSubdivisao: { width: 150 },
-  wEditar: { width: 70 },
+  wValor: { width: 80 },
 });

@@ -34,6 +34,7 @@ export async function inserirAtivos({
         const a: Ativo = {
           inventario_id: inventarioAtual.id,
           codigo_ativo: String(row.codigo_ativo ?? ""),
+          valor: Number(row.valor),
           descricao: String(row.descricao ?? ""),
           comentarios: String(row.comentarios ?? ""),
           categoria: String(row.categoria ?? ""),
@@ -47,11 +48,12 @@ export async function inserirAtivos({
         };
         await db.runAsync(
           `INSERT INTO tbAtivos
-            (inventario_id, codigo_ativo, descricao, comentarios, categoria, localizacao, centroDeCustos, subdivisao, dataHoraInventariado, status, dataHoraCriacao, dataHoraAtualizacao)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (inventario_id, codigo_ativo, valor, descricao, comentarios, categoria, localizacao, centroDeCustos, subdivisao, dataHoraInventariado, status, dataHoraCriacao, dataHoraAtualizacao)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             a.inventario_id,
             a.codigo_ativo,
+            a.valor,
             a.descricao,
             a.comentarios,
             a.categoria,
@@ -84,8 +86,25 @@ export async function buscarTodosAtivos(
   try {
     const ativos: Ativo[] = await db.getAllAsync(
       `
-      SELECT inventario_id, codigo_ativo, descricao, comentarios, categoria, localizacao, centroDeCustos, subdivisao, dataHoraInventariado, status, dataHoraCriacao, dataHoraAtualizacao 
-      FROM tbAtivos WHERE inventario_id = ?;
+      SELECT
+        inventario_id,
+        codigo_ativo, 
+        valor, 
+        descricao, 
+        comentarios, 
+        categoria, 
+        localizacao, 
+        centroDeCustos, 
+        subdivisao, 
+        dataHoraInventariado, 
+        status, 
+        dataHoraCriacao, 
+        dataHoraAtualizacao 
+      FROM tbAtivos 
+        WHERE inventario_id = ?
+      ORDER BY
+        valor
+      DESC;
     `,
       [inventario_id],
     );
@@ -120,7 +139,8 @@ export async function buscarAtivosInventario(
         A.id,
         A.inventario_id,
         A.codigo_ativo,
-        A.descricao AS descricao_ativo,
+        A.valor,
+        A.descricao,
         A.comentarios,
         A.categoria,
         A.centroDeCustos,
@@ -135,6 +155,7 @@ export async function buscarAtivosInventario(
         A.id,
         C.inventario_id,
         A.codigo_ativo,
+        A.valor,
         A.descricao,
         A.comentarios,
         A.categoria,
@@ -163,11 +184,12 @@ export async function buscarAtivosInventario(
   ) AS A  
     UNION ALL
       SELECT
-        IIF(A.extra = 0, 2, 3) AS Encontrado,
+        IIF(A.nao_cadastrado = 0, 2, 3) AS Encontrado,
         A.id,
         A.inventario_id,
         A.codigo_ativo,
-        A.descricao AS descricao_ativo,
+        B.valor,
+        A.descricao,
         A.comentarios,
         A.categoria,
         A.centroDeCustos,
@@ -178,21 +200,25 @@ export async function buscarAtivosInventario(
       FROM
         tbAtivosInventario AS A
       LEFT JOIN
-        tbCentrosInventarios AS B
+        tbAtivos AS B
+      ON
+        A.inventario_id = B.inventario_id AND
+        A.codigo_ativo = B.codigo_ativo
+      LEFT JOIN
+        tbCentrosInventarios AS C
       ON
       (
-        B.inventario_id = A.inventario_id
-        AND B.centroDeCustos = IIF(A.novoCentroDeCustos IS NULL, A.centroDeCustos, A.novoCentroDeCustos) 
+        C.inventario_id = A.inventario_id
+        AND C.centroDeCustos = IIF(A.novoCentroDeCustos IS NULL, A.centroDeCustos, A.novoCentroDeCustos) 
       AND
-        B.subdivisao = IIF(A.novaSubdivisao IS NULL, A.subdivisao, A.novaSubdivisao)
+        C.subdivisao = IIF(A.novaSubdivisao IS NULL, A.subdivisao, A.novaSubdivisao)
       )
     WHERE
         A.inventario_id = '${inventarioId}'
-        AND B.inventario_id IS NULL
+        AND C.inventario_id IS NULL
     ORDER BY
-      A.centroDeCustos,
-      A.subdivisao,
-      A.codigo_ativo;
+      B.valor
+    DESC;
     `);
 
   return centroInventarios;
@@ -276,7 +302,8 @@ export async function getAtivosInventariosHistorico(
         A.comentarios,
         IIF(A.inputType=1,'X','') AS RFID,
         A.dataHoraInventariado,
-        A.Extra
+        A.Extra,
+        IIF(A.nao_cadastrado = 1, 'X', '') AS NaoCadastrados
       FROM 
       (
         SELECT *, IIF(B.id IS NULL, 'X', '') AS Extra FROM tbAtivosInventario AS A
@@ -368,7 +395,7 @@ export async function inserirAtivo(
       inventario_id,
       usuario_responsavel,
       codigo_ativo,
-      extra,
+      nao_cadastrado,
       descricao,
       comentarios, 
       categoria, 
@@ -386,7 +413,7 @@ export async function inserirAtivo(
       ${ativoInventario.inventario_id}, 
       '${ativoInventario.usuario_responsavel}',
       '${ativoInventario.codigo_ativo}',
-        ${ativoInventario.extra}, 
+        ${ativoInventario.nao_cadastrado}, 
       '${ativoInventario.descricao}', 
       '${ativoInventario.comentarios}', 
       '${ativoInventario.categoria}', 
