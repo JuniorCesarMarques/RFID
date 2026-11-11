@@ -306,7 +306,8 @@ export async function getAtivosInventariosHistorico(
         IIF(A.nao_cadastrado = 1, 'X', '') AS NaoCadastrados
       FROM 
       (
-        SELECT *, IIF(B.id IS NULL, 'X', '') AS Extra FROM tbAtivosInventario AS A
+        SELECT *, 
+        IIF(B.id IS NULL AND A.nao_cadastrado = 0, 'X', '') AS Extra FROM tbAtivosInventario AS A
           LEFT JOIN
         tbCentrosInventarios AS B
           ON
@@ -314,11 +315,6 @@ export async function getAtivosInventariosHistorico(
         IIF(A.novoCentroDeCustos IS NULL, A.centroDeCustos, A.novoCentroDeCustos) = B.centroDeCustos AND
         IIF(A.novaSubdivisao IS NULL, A.subdivisao, A.novaSubdivisao) = B.subdivisao
       ) AS A
-  INNER JOIN
-    tbAtivos AS B
-      ON
-    A.codigo_ativo = B.codigo_ativo AND
-    A.inventario_id = B.inventario_id
       INNER JOIN
     tbInventarios AS C
       ON

@@ -77,8 +77,6 @@ export default function TelaInventario() {
   const [valorFiltro, setValorFiltro] = useState("");
   const [campoFiltro, setCampoFiltro] = useState("codigo_ativo");
 
-  console.log(ativosInventario.filter(a => a.Encontrado === 3));
-
   let ativosPorStatus;
   switch (selectedTab) {
     // Lidos

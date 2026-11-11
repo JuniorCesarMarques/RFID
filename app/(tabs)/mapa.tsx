@@ -4,15 +4,16 @@ import { useLiveLocation } from "@/hooks/useLiveLocation";
 import { AtivosInventario } from "@/types";
 import { ActivityIndicator } from "@ant-design/react-native";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, Overlay } from "react-native-maps";
 
 import AlertComponent from "@/components/AlertComponent";
 import ListaAtivosMapa from "@/components/ListaAtivosMapa";
 import { useInventarios } from "@/contexts/InventariosContext";
 import { buscarAtivosMapa } from "@/database/ativosRepository";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import { usePlantaConfig } from "@/hooks/usePlantaConfig";
 
 export type AtivosMapa = AtivosInventario & {
   Aplica: number;
@@ -65,6 +66,7 @@ export default function App() {
       )}
       {/* MAPA */}
       <MapView
+        onPress={(e) => console.log(e.nativeEvent.coordinate)}
         style={styles.map}
         initialRegion={{
           latitude: location.coords.latitude,
@@ -100,6 +102,20 @@ export default function App() {
         >
           <FontAwesome6 name="person-walking" size={30} color="red" />
         </Marker>
+        <Overlay
+          style={{transform: [{rotate: "55deg"}]}}
+          image={require("../../assets/images/planta.png")}
+          bounds={[
+            [
+              -23.313599438584834,
+              -47.82219149172306,
+            ], // topo-direito
+            [
+              -23.332369337851333,
+              -47.83927112817764,
+            ], // inferior-esquerdo
+          ]}
+        />
       </MapView>
     </View>
   );
