@@ -4,7 +4,7 @@ import { useLiveLocation } from "@/hooks/useLiveLocation";
 import { AtivosInventario } from "@/types";
 import { ActivityIndicator } from "@ant-design/react-native";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import MapView, { Marker, Overlay } from "react-native-maps";
 
@@ -13,7 +13,6 @@ import ListaAtivosMapa from "@/components/ListaAtivosMapa";
 import { useInventarios } from "@/contexts/InventariosContext";
 import { buscarAtivosMapa } from "@/database/ativosRepository";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import { usePlantaConfig } from "@/hooks/usePlantaConfig";
 
 export type AtivosMapa = AtivosInventario & {
   Aplica: number;
@@ -103,16 +102,16 @@ export default function App() {
           <FontAwesome6 name="person-walking" size={30} color="red" />
         </Marker>
         <Overlay
-          style={{transform: [{rotate: "55deg"}]}}
+          bearing={12}
           image={require("../../assets/images/planta.png")}
           bounds={[
             [
-              -23.313599438584834,
-              -47.82219149172306,
+              -23.312292389615664,
+              -47.82470237463713,
             ], // topo-direito
             [
-              -23.332369337851333,
-              -47.83927112817764,
+              -23.32180322515768,
+              -47.83376723527908,
             ], // inferior-esquerdo
           ]}
         />

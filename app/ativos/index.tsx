@@ -30,6 +30,8 @@ import Toast from "react-native-toast-message";
 export default function Ativos() {
   const { ativos, setAtivos } = useAtivo();
 
+  console.log(ativos.filter(a => a.codigo_ativo === "123456789"));
+
   const { inventarioAtual } = useInventarios();
 
   const [ativosLoading, setAtivosLoading] = useState(false);
@@ -46,6 +48,8 @@ export default function Ativos() {
   // Filtro
   const [valorFiltro, setValorFiltro] = useState("");
   const [campoFiltro, setCampoFiltro] = useState("codigo_ativo");
+
+  console.log(valorFiltro)
 
   // Add Ativo
   const [addModalState, setAddModalState] = useState<boolean>(false);
@@ -68,9 +72,9 @@ export default function Ativos() {
     setAddModalState(false);
   };
 
-  const handleAddAtivo = async (ativo: AtivoToInsert) => {
+  const handleAddAtivo = async (ativo: Ativo) => {
     Object.keys(ativo).forEach((key) => {
-      const typedKey = key as keyof AtivoToInsert;
+      const typedKey = key as keyof Ativo;
       const value = ativo[typedKey];
 
       if (typeof value === "string") {
@@ -94,6 +98,7 @@ export default function Ativos() {
       const novoAtivo: Ativo = {
         inventario_id: ativo.inventario_id,
         codigo_ativo: ativo.codigo_ativo,
+        valor: ativo.valor,
         centroDeCustos: ativo.centroDeCustos,
         subdivisao: ativo.subdivisao ?? "",
         descricao: ativo.descricao,
@@ -169,6 +174,10 @@ export default function Ativos() {
       }
     })();
   }, [inventarioAtual?.id]);
+
+  const updateFilterValue = (value: string) => {
+    setValorFiltro(value);
+  }
 
   return (
     <View style={styles.screen}>
@@ -258,9 +267,8 @@ export default function Ativos() {
       ) : (
         <View>
           <Filtro
-            field={campoFiltro}
             value={valorFiltro}
-            setValue={setValorFiltro}
+            updateValue={updateFilterValue}
             seFiled={setCampoFiltro}
           />
           {/* Scroll horizontal para a tabela */}
@@ -418,7 +426,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   cellCodigo: {
-    width: 100,
+    width: 120,
   },
   cellValor: {
     width: 100,

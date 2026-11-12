@@ -3,15 +3,15 @@ import { SetStateAction, useRef, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 
 type Props = {
-  setValue: React.Dispatch<SetStateAction<string>>;
+  updateValue: (value: string) => void;
   seFiled: React.Dispatch<SetStateAction<string>>;
-  field: string;
   value: string;
 };
 
 export default function Filtro({
-  setValue,
-  seFiled
+  updateValue,
+  seFiled,
+  value
 }: Props) {
 
   const inputRef = useRef<TextInput>(null);
@@ -21,6 +21,7 @@ export default function Filtro({
     { label: "Descrição", value: "descricao" },
   ]);
 
+
   return (
     <View style={[styles.filterContainer, { zIndex: 10, elevation: 10 }]}>
       <View style={{ alignSelf: "flex-start", zIndex: 20, minWidth: 150 }}>
@@ -28,7 +29,7 @@ export default function Filtro({
           selectedValue="codigo_ativo"
           onValueChange={(value) => {
             inputRef.current?.clear();
-            setValue("");
+            updateValue("");
             seFiled(value)
           }}
         >
@@ -39,7 +40,8 @@ export default function Filtro({
       </View>
         <TextInput
           ref={inputRef}
-          onChangeText={(e) => setValue(e)}
+          onChangeText={(e) => updateValue(e)}
+          value={value}
           style={styles.searchInput}
           placeholder="Buscar..."
           placeholderTextColor="#888"

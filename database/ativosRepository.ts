@@ -448,13 +448,17 @@ export async function inserirAtivo(
   }
 }
 
-export async function inserirAtivoLista(db: SQLiteDatabase, ativo: AtivoToInsert){
+export async function inserirAtivoLista(db: SQLiteDatabase, ativo: Ativo){
 
-  const ativoFormatado: AtivoToInsert = {
+  console.log(typeof ativo.valor);
+
+  const ativoFormatado: Ativo = {
     inventario_id: ativo.inventario_id,
     codigo_ativo: ativo.codigo_ativo,
+    valor: ativo.valor,
     descricao: ativo.descricao,
     comentarios: ativo.comentarios,
+    localizacao: "",
     categoria: ativo.categoria,
     centroDeCustos: ativo.centroDeCustos,
     subdivisao: ativo.subdivisao,
@@ -469,6 +473,7 @@ export async function inserirAtivoLista(db: SQLiteDatabase, ativo: AtivoToInsert
   const res = await db.runAsync(`INSERT INTO tbAtivos (
       inventario_id,
       codigo_ativo,
+      valor,
       descricao,
       comentarios,
       categoria,
@@ -479,7 +484,7 @@ export async function inserirAtivoLista(db: SQLiteDatabase, ativo: AtivoToInsert
       dataHoraCriacao,
       dataHoraAtualizacao 
     )
-      VALUES (?,?,?,?,?,?,?,?,?,?,?)`, [...values]);
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`, [...values]);
 
       return res.lastInsertRowId;
 }

@@ -1,4 +1,4 @@
-import { AtivoToInsert } from "@/types";
+import { Ativo } from "@/types";
 import { Controller, useForm } from "react-hook-form";
 import {
   KeyboardAvoidingView,
@@ -13,7 +13,7 @@ import {
 
 type AtivoFormProps = {
   inventarioId: number;
-  onSubmit: (data: AtivoToInsert) => void | Promise<void>;
+  onSubmit: (data: Ativo) => void | Promise<void>;
 };
 
 export default function AtivoForm({ inventarioId, onSubmit }: AtivoFormProps) {
@@ -21,10 +21,11 @@ export default function AtivoForm({ inventarioId, onSubmit }: AtivoFormProps) {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<AtivoToInsert>({
+  } = useForm<Ativo>({
     defaultValues: {
       inventario_id: inventarioId,
       codigo_ativo: "",
+      valor: 0,
       descricao: "",
       comentarios: "",
       categoria: "",
@@ -130,7 +131,38 @@ export default function AtivoForm({ inventarioId, onSubmit }: AtivoFormProps) {
             )}
           </View>
 
-          {/* Centro de custos */}
+          {/* Valor */}
+          <View style={styles.field}>
+            <Text style={styles.label}>
+              Valor <Text style={styles.required}>*</Text>
+            </Text>
+
+            <Controller
+              control={control}
+              name="valor"
+              rules={{
+                required: "O valor é obrigatório",
+              }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={[styles.input, errors.valor && styles.inputError]}
+                  value={
+                    value === undefined ? "" : String(value)
+                  }
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  placeholder="Ex.: 5000"
+                  placeholderTextColor="#9CA3AF"
+                />
+              )}
+            />
+
+            {errors.valor && (
+              <Text style={styles.error}>{errors.valor.message}</Text>
+            )}
+          </View>
+
+          {/* Categoria */}
           <View style={styles.field}>
             <Text style={styles.label}>Categoria</Text>
 

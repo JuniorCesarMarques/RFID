@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
   },
 
   // LARGURAS FIXAS (IMPORTANTE: iguais ao ListaAtivos)
-  wCodigo: { width: 100 },
+  wCodigo: { width: 120 },
   wStatus: { width: 100 },
   wDescricao: { width: 200 },
   wCategoria: { width: 150 },
