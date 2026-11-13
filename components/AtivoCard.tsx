@@ -25,6 +25,8 @@ export default function AtivoCard({
   onLongPress,
   selecteds,
 }: Props) {
+  const valor = Number(ativo.valor);
+
   return (
     <Pressable
       style={[
@@ -71,7 +73,12 @@ export default function AtivoCard({
       <Text style={[styles.cell, styles.wSubdivisao]}>
         {ativo.novaSubdivisao}
       </Text>
-      <Text style={[styles.cell, styles.wValor]}>{ativo.valor}</Text>
+      <Text style={[styles.cell, styles.wValor]}>
+        {new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(valor)}
+      </Text>
     </Pressable>
   );
 }
@@ -111,5 +118,5 @@ const styles = StyleSheet.create({
   wCategoria: { width: 150 },
   wCentroDeCustos: { width: 150 },
   wSubdivisao: { width: 150 },
-  wValor: { width: 80 },
+  wValor: { width: 100 },
 });

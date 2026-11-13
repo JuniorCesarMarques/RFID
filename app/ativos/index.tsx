@@ -1,6 +1,6 @@
 import AtivosToolbar from "@/components/AtivosToolbar";
 import { useAtivo } from "@/contexts/AtivosContext";
-import { Ativo, AtivoToInsert } from "@/types";
+import { Ativo, AtivoForm } from "@/types";
 import { useEffect, useMemo, useState } from "react";
 import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -26,11 +26,10 @@ import { exportXLSX } from "@/services/exportXLSX";
 import useImportAtivos from "@/hooks/useImportAtivos";
 import { ActivityIndicator } from "@ant-design/react-native";
 import Toast from "react-native-toast-message";
+import { useFilter } from "@/hooks/useFilter";
 
 export default function Ativos() {
   const { ativos, setAtivos } = useAtivo();
-
-  console.log(ativos.filter(a => a.codigo_ativo === "123456789"));
 
   const { inventarioAtual } = useInventarios();
 
@@ -46,10 +45,7 @@ export default function Ativos() {
   } = useImportAtivos();
 
   // Filtro
-  const [valorFiltro, setValorFiltro] = useState("");
-  const [campoFiltro, setCampoFiltro] = useState("codigo_ativo");
-
-  console.log(valorFiltro)
+  const { valorFiltro, campoFiltro, updateFilterField, updateFilterValue } = useFilter();
 
   // Add Ativo
   const [addModalState, setAddModalState] = useState<boolean>(false);
@@ -72,9 +68,9 @@ export default function Ativos() {
     setAddModalState(false);
   };
 
-  const handleAddAtivo = async (ativo: Ativo) => {
+  const handleAddAtivo = async (ativo: AtivoForm) => {
     Object.keys(ativo).forEach((key) => {
-      const typedKey = key as keyof Ativo;
+      const typedKey = key as keyof AtivoForm;
       const value = ativo[typedKey];
 
       if (typeof value === "string") {
@@ -93,23 +89,9 @@ export default function Ativos() {
         return;
       }
 
-      await inserirAtivoLista(db, ativo);
+      const novoAtivo = {...ativo, valor: Number(ativo.valor)};
 
-      const novoAtivo: Ativo = {
-        inventario_id: ativo.inventario_id,
-        codigo_ativo: ativo.codigo_ativo,
-        valor: ativo.valor,
-        centroDeCustos: ativo.centroDeCustos,
-        subdivisao: ativo.subdivisao ?? "",
-        descricao: ativo.descricao,
-        categoria: ativo.categoria ?? "",
-        comentarios: ativo.comentarios ?? "",
-        localizacao: "",
-        dataHoraCriacao: ativo.dataHoraCriacao ?? "",
-        dataHoraInventariado: ativo.dataHoraInventariado ?? "",
-        dataHoraAtualizacao: ativo.dataHoraAtualizacao ?? "",
-        status: ativo.status ?? 0,
-      };
+      await inserirAtivoLista(db, novoAtivo);
 
       setAtivos((prev) => [...prev, novoAtivo]);
 
@@ -175,9 +157,6 @@ export default function Ativos() {
     })();
   }, [inventarioAtual?.id]);
 
-  const updateFilterValue = (value: string) => {
-    setValorFiltro(value);
-  }
 
   return (
     <View style={styles.screen}>
@@ -269,7 +248,7 @@ export default function Ativos() {
           <Filtro
             value={valorFiltro}
             updateValue={updateFilterValue}
-            seFiled={setCampoFiltro}
+            setFiled={updateFilterField}
           />
           {/* Scroll horizontal para a tabela */}
           <PaginationNativePaper

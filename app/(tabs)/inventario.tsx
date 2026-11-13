@@ -40,6 +40,7 @@ import ModalTrocarUsuario from "@/components/ModalTrocarUsuario";
 import Segmented from "@/components/Segmented";
 import UsuarioLogado from "@/components/UsuarioLogado";
 import { changeUser } from "@/database/usuarioRepository";
+import { useFilter } from "@/hooks/useFilter";
 import editarCentrosService from "@/services/editarCentrosService";
 import { useFocusEffect } from "expo-router";
 import Toast from "react-native-toast-message";
@@ -74,8 +75,8 @@ export default function TelaInventario() {
     AtivoComEncontrado[]
   >([]);
 
-  const [valorFiltro, setValorFiltro] = useState("");
-  const [campoFiltro, setCampoFiltro] = useState("codigo_ativo");
+  const { valorFiltro, campoFiltro, updateFilterValue, updateFilterField } =
+    useFilter();
 
   let ativosPorStatus;
   switch (selectedTab) {
@@ -97,7 +98,9 @@ export default function TelaInventario() {
       break;
     // Todos
     default:
-      ativosPorStatus = ativosInventario.filter((a) => a.Encontrado === 1 || a.Encontrado === 0);
+      ativosPorStatus = ativosInventario.filter(
+        (a) => a.Encontrado === 1 || a.Encontrado === 0,
+      );
   }
 
   const {
@@ -473,9 +476,8 @@ export default function TelaInventario() {
           <Segmented selectedTab={selectedTab} onSelectedTab={onSelectedTab} />
 
           <Filtro
-            setValue={setValorFiltro}
-            seFiled={setCampoFiltro}
-            field={campoFiltro}
+            updateValue={updateFilterValue}
+            setFiled={updateFilterField}
             value={valorFiltro}
           />
 

@@ -1,4 +1,4 @@
-import { Ativo } from "@/types";
+import { AtivoForm } from "@/types";
 import { Controller, useForm } from "react-hook-form";
 import {
   KeyboardAvoidingView,
@@ -13,19 +13,21 @@ import {
 
 type AtivoFormProps = {
   inventarioId: number;
-  onSubmit: (data: Ativo) => void | Promise<void>;
+  onSubmit: (data: AtivoForm) => void | Promise<void>;
 };
 
-export default function AtivoForm({ inventarioId, onSubmit }: AtivoFormProps) {
+
+
+export default function novoAtivoForm({ inventarioId, onSubmit }: AtivoFormProps) {
   const {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<Ativo>({
+  } = useForm<AtivoForm>({
     defaultValues: {
       inventario_id: inventarioId,
       codigo_ativo: "",
-      valor: 0,
+      valor: "",
       descricao: "",
       comentarios: "",
       categoria: "",
@@ -146,9 +148,7 @@ export default function AtivoForm({ inventarioId, onSubmit }: AtivoFormProps) {
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={[styles.input, errors.valor && styles.inputError]}
-                  value={
-                    value === undefined ? "" : String(value)
-                  }
+                  value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   placeholder="Ex.: 5000"

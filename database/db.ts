@@ -14,7 +14,7 @@ export const initDb = async () => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       inventario_id INTEGER,
       codigo_ativo TEXT NOT NULL,
-      valor INTEGER NOT NULL,
+      valor REAL NOT NULL,
       descricao TEXT,
       comentarios TEXT,
       categoria TEXT,

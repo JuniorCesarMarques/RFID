@@ -14,6 +14,8 @@ export type Ativo = {
   dataHoraAtualizacao: string;
 };
 
+export type AtivoForm = Omit<Ativo, "valor"> & { valor: string };
+
 export type AtivoToInsert = {
   inventario_id: number;
   codigo_ativo: string;
@@ -30,7 +32,7 @@ export type AtivoToInsert = {
 
 export type Inventario = {
   id: number;
-  usuario_responsavel: string,
+  usuario_responsavel: string;
   codigo_inventario: string;
   descricao: string;
   status: number;

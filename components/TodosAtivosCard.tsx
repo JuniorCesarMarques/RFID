@@ -1,8 +1,9 @@
 import { Ativo } from "@/types";
 import { StyleSheet, Text, View } from "react-native";
 
-
 export default function TodosAtivosCard({ ativo }: { ativo: Ativo }) {
+  const valor = Number(ativo.valor);
+
   return (
     <View style={styles.row}>
       <Text style={[styles.cell, styles.wCodigo]}>{ativo?.codigo_ativo}</Text>
@@ -11,7 +12,12 @@ export default function TodosAtivosCard({ ativo }: { ativo: Ativo }) {
         {ativo?.centroDeCustos}
       </Text>
       <Text style={[styles.cell, styles.wSubdivisao]}>{ativo?.subdivisao}</Text>
-      <Text style={[styles.cell, styles.wValor]}>{ativo?.valor}</Text>
+      <Text style={[styles.cell, styles.wValor]}>
+        {new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(valor)}
+      </Text>
     </View>
   );
 }
@@ -36,5 +42,5 @@ const styles = StyleSheet.create({
   wDescricao: { width: 200 },
   wCategoria: { width: 150 },
   wSubdivisao: { width: 150 },
-  wValor: { width: 100 }
+  wValor: { width: 100 },
 });

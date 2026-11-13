@@ -47,5 +47,5 @@ const styles = StyleSheet.create({
   wCategoria: { width: 150 },
   wCentroDeCustos: { width: 150 },
   wSubdivisao: { width: 150 },
-  wValor: { width: 80 },
+  wValor: { width: 100 },
 });

@@ -4,13 +4,13 @@ import { StyleSheet, TextInput, View } from "react-native";
 
 type Props = {
   updateValue: (value: string) => void;
-  seFiled: React.Dispatch<SetStateAction<string>>;
+  setFiled: (filed: string) => void;
   value: string;
 };
 
 export default function Filtro({
   updateValue,
-  seFiled,
+  setFiled,
   value
 }: Props) {
 
@@ -30,7 +30,7 @@ export default function Filtro({
           onValueChange={(value) => {
             inputRef.current?.clear();
             updateValue("");
-            seFiled(value)
+            setFiled(value)
           }}
         >
           {items.map((i, index) => (
