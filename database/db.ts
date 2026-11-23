@@ -69,7 +69,6 @@ export const initDb = async () => {
     comentarios TEXT,
     categoria TEXT,
     inputType INTEGER,
-    nao_cadastrado INTEGER NOT NULL,
     latitude TEXT,
     longitude TEXT,
     accuracy TEXT,

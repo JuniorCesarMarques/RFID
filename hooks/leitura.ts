@@ -98,7 +98,6 @@ export default function useLeitura() {
       const ativoInventario: AtivosInventario = {
         usuario_responsavel: inventarioAtual.usuario_responsavel,
         inputType: 0,
-        nao_cadastrado: ativo ? 0 : 1,
         latitude,
         longitude,
         accuracy,
@@ -178,7 +177,6 @@ export default function useLeitura() {
     const ativoInventario: AtivosInventario = {
       usuario_responsavel: inventarioAtual.usuario_responsavel,
       inputType: 1,
-      nao_cadastrado: ativo ? 0 : 1,
       latitude,
       longitude,
       accuracy,

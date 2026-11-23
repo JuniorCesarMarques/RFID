@@ -50,7 +50,6 @@ export type CentrosInventariosType = {
 
 export type AtivosInventario = {
   inputType: number;
-  nao_cadastrado: number;
   inventario_id: number;
   usuario_responsavel: string;
   codigo_ativo: string;

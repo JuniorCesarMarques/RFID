@@ -188,7 +188,7 @@ export async function buscarAtivosInventario(
   ) AS A  
     UNION ALL
       SELECT
-        IIF(A.nao_cadastrado = 0, 2, 3) AS Encontrado,
+        IIF(B.id IS NOT NULL, 2, 3) AS Encontrado,
         A.id,
         A.inventario_id,
         A.codigo_ativo,
@@ -310,24 +310,25 @@ export async function getAtivosInventariosHistorico(
         IIF(A.inputType=1,'X','') AS RFID,
         A.dataHoraInventariado,
         A.Extra,
-        IIF(A.nao_cadastrado = 1, 'X', '') AS NaoCadastrados
+        IIF(A.Ativo_id IS NULL, 'X', '') AS NaoCadastrados
       FROM 
       (
         SELECT *, 
-        IIF(B.id IS NULL AND A.nao_cadastrado = 0, 'X', '') AS Extra,
+          IIF(B.id IS NULL AND C.id IS NOT NULL, 'X', '') AS Extra,
+        C.id AS Ativo_id,
         C.valor
           FROM tbAtivosInventario AS A
-          LEFT JOIN
-        tbCentrosInventarios AS B
-          ON
-        A.inventario_id = B.inventario_id AND
+        LEFT JOIN
+          tbCentrosInventarios AS B
+        ON
+          A.inventario_id = B.inventario_id AND
         IIF(A.novoCentroDeCustos IS NULL, A.centroDeCustos, A.novoCentroDeCustos) = B.centroDeCustos AND
-        IIF(A.novaSubdivisao IS NULL, A.subdivisao, A.novaSubdivisao) = B.subdivisao
-          LEFT JOIN
-        tbAtivos AS C
-          ON
-        A.codigo_ativo = C.codigo_ativo AND
-        A.inventario_id = C.inventario_id
+          IIF(A.novaSubdivisao IS NULL, A.subdivisao, A.novaSubdivisao) = B.subdivisao
+        LEFT JOIN
+          tbAtivos AS C
+        ON
+          A.codigo_ativo = C.codigo_ativo AND
+          A.inventario_id = C.inventario_id
       ) AS A
       INNER JOIN
     tbInventarios AS B
@@ -405,7 +406,6 @@ export async function inserirAtivo(
       inventario_id,
       usuario_responsavel,
       codigo_ativo,
-      nao_cadastrado,
       descricao,
       comentarios, 
       categoria, 
@@ -423,7 +423,6 @@ export async function inserirAtivo(
       ${ativoInventario.inventario_id}, 
       '${ativoInventario.usuario_responsavel}',
       '${ativoInventario.codigo_ativo}',
-        ${ativoInventario.nao_cadastrado}, 
       '${ativoInventario.descricao}', 
       '${ativoInventario.comentarios}', 
       '${ativoInventario.categoria}', 
