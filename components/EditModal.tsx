@@ -19,8 +19,7 @@ import { editarInventario } from "@/database/inventariosRepository";
 import { Inventario } from "@/types";
 import { ActivityIndicator } from "@ant-design/react-native";
 import { Picker } from "@react-native-picker/picker";
-import { useFocusEffect } from "expo-router";
-import { SetStateAction, useCallback, useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import {
   Controller,
   FormProvider,

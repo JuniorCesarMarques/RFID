@@ -103,14 +103,6 @@ export default function TelaInventario() {
       );
   }
 
-  const {
-    inicio,
-    fim,
-    paginaAtual,
-    setPaginaAtual,
-    numberOfItemsPerPage,
-    setNumberOfItemsPerPage,
-  } = usePagination();
 
   const ativosFiltrados = useMemo(() => {
     if (!valorFiltro || !campoFiltro) {
@@ -126,6 +118,16 @@ export default function TelaInventario() {
       );
     });
   }, [ativosPorStatus, valorFiltro]);
+
+  
+  const {
+    inicio,
+    fim,
+    paginaAtual,
+    setPaginaAtual,
+    numberOfItemsPerPage,
+    setNumberOfItemsPerPage,
+  } = usePagination();
 
   let ativosSliced = ativosFiltrados.slice(inicio, fim);
 
@@ -345,7 +347,7 @@ export default function TelaInventario() {
       />
       <ModalLeitura
         onCloseModal={onCloseModalLeitura}
-        totalAtivos={ativosInventario.filter((a) => a.Encontrado !== 2).length}
+        totalAtivos={ativosInventario.filter((a) => a.Encontrado === 0 || a.Encontrado === 1).length}
         modalState={modalState}
         setModalState={setModalState}
       />

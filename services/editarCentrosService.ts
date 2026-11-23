@@ -13,6 +13,8 @@ export default async function editarCentrosService(
 ) {
   const placeholders = data.codigos.map(() => "?").join(",");
 
+  console.log(data.codigos);
+
   try {
     const res = await db.runAsync(
       `UPDATE tbAtivosInventario SET novoCentroDeCustos = ?, novaSubdivisao = ? WHERE inventario_id = ? AND codigo_ativo IN (${placeholders})`,

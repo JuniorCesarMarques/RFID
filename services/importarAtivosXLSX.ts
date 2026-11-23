@@ -122,7 +122,7 @@ export const importarAtivosXLSX = async ({
       {
         field: "valor",
         label: "Valor",
-        regex: /^\d+$/,
+        regex: /^\d+(\.\d{1,2})?$/,
       },
       {
         field: "descricao",

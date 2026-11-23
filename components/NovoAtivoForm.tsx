@@ -151,7 +151,7 @@ export default function novoAtivoForm({ inventarioId, onSubmit }: AtivoFormProps
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
-                  placeholder="Ex.: 5000"
+                  placeholder="Ex.: 5325,33"
                   placeholderTextColor="#9CA3AF"
                 />
               )}

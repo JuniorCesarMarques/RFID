@@ -27,6 +27,7 @@ export default function App() {
 
   const [ativos, setAtivos] = useState<AtivosMapa[]>([]);
 
+
   useFocusEffect(
     useCallback(() => {
       (async () => {
@@ -101,17 +102,17 @@ export default function App() {
         >
           <FontAwesome6 name="person-walking" size={30} color="red" />
         </Marker>
+
         <Overlay
-          bearing={12}
           image={require("../../assets/images/planta.png")}
           bounds={[
             [
-              -23.312292389615664,
-              -47.82470237463713,
+              -23.31311079775327,
+              -47.82513119280338,
             ], // topo-direito
             [
-              -23.32180322515768,
-              -47.83376723527908,
+              -23.316284621840207,
+              -47.82702147960663,
             ], // inferior-esquerdo
           ]}
         />

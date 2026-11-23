@@ -69,6 +69,10 @@ export default function Ativos() {
   };
 
   const handleAddAtivo = async (ativo: AtivoForm) => {
+
+    ativo.valor = ativo.valor.replace(",", ".");
+
+
     Object.keys(ativo).forEach((key) => {
       const typedKey = key as keyof AtivoForm;
       const value = ativo[typedKey];
@@ -79,7 +83,12 @@ export default function Ativos() {
     });
 
     try {
-      const res = await buscarAtivoPeloCodigo(db, ativo.codigo_ativo.trim());
+
+      if(!inventarioAtual){
+        return
+      }
+
+      const res = await buscarAtivoPeloCodigo(db, ativo.codigo_ativo.trim(), inventarioAtual.id);
 
       if (res) {
         Toast.show({

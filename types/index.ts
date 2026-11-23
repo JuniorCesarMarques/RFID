@@ -5,7 +5,7 @@ export type Ativo = {
   descricao: string;
   comentarios: string;
   categoria: string;
-  localizacao: string;
+  localizacao: string,
   centroDeCustos: string;
   subdivisao: string;
   dataHoraInventariado: string;

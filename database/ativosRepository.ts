@@ -3,7 +3,7 @@ import { AtivoComEncontrado } from "@/app/(tabs)/inventario";
 import { AtivosMapa } from "@/app/(tabs)/mapa";
 import { CentroDivisao } from "@/components/CentrosDeCustosSelect";
 import { CentrosAplica } from "@/components/EditModal";
-import { Ativo, AtivosInventario, AtivoToInsert, Inventario } from "@/types";
+import { Ativo, AtivosInventario, Inventario } from "@/types";
 import { SQLiteDatabase } from "expo-sqlite";
 
 type InserirAtivosParams = {
@@ -116,9 +116,13 @@ export async function buscarTodosAtivos(
   }
 }
 
-export async function buscarAtivoPeloCodigo(db: SQLiteDatabase, codigo: string){
+export async function buscarAtivoPeloCodigo(db: SQLiteDatabase, codigo: string, inventario_id: number){
 
-  const res = await db.getFirstAsync(`SELECT codigo_ativo FROM tbAtivos WHERE codigo_ativo = ?`, [codigo]);
+  const res = await db.getFirstAsync(`
+    SELECT codigo_ativo 
+      FROM tbAtivos 
+    WHERE 
+      codigo_ativo = ? AND inventario_id = ?`, [codigo, inventario_id]);
 
   return res;
 
@@ -278,6 +282,8 @@ export async function buscarCentrosAplicaveis(
     `);
 
   return result;
+
+  
 }
 
 export async function getAtivosInventariosHistorico(
@@ -288,9 +294,10 @@ export async function getAtivosInventariosHistorico(
   return await db.getAllAsync<AtivosInventario>(`
     SELECT 
         A.usuario_responsavel,
-        C.codigo_inventario,
+        B.codigo_inventario,
         A.codigo_ativo,
         A.descricao,
+        A.valor,
         A.categoria,
         A.centroDeCustos,
         A.subdivisao,
@@ -307,18 +314,25 @@ export async function getAtivosInventariosHistorico(
       FROM 
       (
         SELECT *, 
-        IIF(B.id IS NULL AND A.nao_cadastrado = 0, 'X', '') AS Extra FROM tbAtivosInventario AS A
+        IIF(B.id IS NULL AND A.nao_cadastrado = 0, 'X', '') AS Extra,
+        C.valor
+          FROM tbAtivosInventario AS A
           LEFT JOIN
         tbCentrosInventarios AS B
           ON
         A.inventario_id = B.inventario_id AND
         IIF(A.novoCentroDeCustos IS NULL, A.centroDeCustos, A.novoCentroDeCustos) = B.centroDeCustos AND
         IIF(A.novaSubdivisao IS NULL, A.subdivisao, A.novaSubdivisao) = B.subdivisao
+          LEFT JOIN
+        tbAtivos AS C
+          ON
+        A.codigo_ativo = C.codigo_ativo AND
+        A.inventario_id = C.inventario_id
       ) AS A
       INNER JOIN
-    tbInventarios AS C
+    tbInventarios AS B
       ON
-    A.inventario_id = C.id
+    A.inventario_id = B.id
       WHERE
     A.inventario_id = ${inventarioId};
       ORDER BY A.codigo_ativo`);
@@ -450,16 +464,14 @@ export async function inserirAtivo(
 
 export async function inserirAtivoLista(db: SQLiteDatabase, ativo: Ativo){
 
-  console.log(typeof ativo.valor);
-
   const ativoFormatado: Ativo = {
     inventario_id: ativo.inventario_id,
     codigo_ativo: ativo.codigo_ativo,
     valor: ativo.valor,
     descricao: ativo.descricao,
     comentarios: ativo.comentarios,
-    localizacao: "",
     categoria: ativo.categoria,
+    localizacao: ativo.localizacao,
     centroDeCustos: ativo.centroDeCustos,
     subdivisao: ativo.subdivisao,
     dataHoraInventariado: ativo.dataHoraInventariado,
@@ -477,6 +489,7 @@ export async function inserirAtivoLista(db: SQLiteDatabase, ativo: Ativo){
       descricao,
       comentarios,
       categoria,
+      localizacao,
       centroDeCustos,
       subdivisao,
       dataHoraInventariado,
@@ -484,7 +497,7 @@ export async function inserirAtivoLista(db: SQLiteDatabase, ativo: Ativo){
       dataHoraCriacao,
       dataHoraAtualizacao 
     )
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`, [...values]);
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`, [...values]);
 
       return res.lastInsertRowId;
 }

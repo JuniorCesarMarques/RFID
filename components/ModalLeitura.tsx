@@ -34,6 +34,7 @@ export default function ModalLeitura({
   setModalState,
   totalAtivos,
 }: ModalLeituraType) {
+  
   const { ativos } = useAtivo();
 
   const { count, resetReading, dispositivoConectado } = useBluetooth();
