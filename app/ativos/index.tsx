@@ -31,6 +31,8 @@ import { useFilter } from "@/hooks/useFilter";
 export default function Ativos() {
   const { ativos, setAtivos } = useAtivo();
 
+  console.log(ativos);
+
   const { inventarioAtual } = useInventarios();
 
   const [ativosLoading, setAtivosLoading] = useState(false);

@@ -3,17 +3,17 @@ import { useState } from "react";
 export const useEditModal = () => {
   const [editModalState, setEditModalState] = useState<boolean>(false);
 
-  const openModal = () => {
+  const openEditModal = () => {
     setEditModalState(true);
   };
 
-  const closeModal = () => {
+  const closeEditModal = () => {
     setEditModalState(false);
   };
 
   return {
-    openModal,
-    closeModal,
+    openEditModal,
+    closeEditModal,
     editModalState
   };
 };

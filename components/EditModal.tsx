@@ -31,8 +31,8 @@ import { CamposBasicos } from "./CamposBasicosForm";
 import EmptyState from "./EmptyState";
 
 type EditModalProps = {
-  editModal: boolean;
-  setEditModal: React.Dispatch<React.SetStateAction<boolean>>;
+  modalState: boolean;
+  onCloseModal: () => void;
   inventarioAtual: Inventario;
   setInventarioAtual: React.Dispatch<SetStateAction<Inventario | null>>;
   onAlteracao: React.Dispatch<SetStateAction<number>>;
@@ -63,8 +63,8 @@ type StatusType = {
 };
 
 export default function EditModal({
-  editModal,
-  setEditModal,
+  modalState,
+  onCloseModal,
   inventarioAtual,
   setInventarioAtual,
   onAlteracao,
@@ -149,7 +149,7 @@ export default function EditModal({
 
     if (data.status !== 1) {
       setInventarioAtual(null);
-      setEditModal(false);
+      onCloseModal();
       return;
     }
 
@@ -159,7 +159,7 @@ export default function EditModal({
       descricao: data.descricao,
     });
 
-    setEditModal(false);
+    onCloseModal();
   };
 
   useEffect(() => {
@@ -179,7 +179,7 @@ export default function EditModal({
       };
 
       getInventarios();
-  }, [inventarioAtual.id, editModal])
+  }, [inventarioAtual.id, modalState])
 
 
   const handleInsertLocals = async () => {
@@ -238,11 +238,11 @@ export default function EditModal({
 
   return (
     <Modal
-      visible={editModal}
+      visible={modalState}
       transparent
       animationType="fade"
       onRequestClose={() => {
-        setEditModal(false);
+        onCloseModal();
       }}
       onFocus={() =>
         reset({
@@ -427,7 +427,7 @@ export default function EditModal({
               top: 0,
             }}
           >
-            <Button title="X" color="red" onPress={() => setEditModal(false)} />
+            <Button title="X" color="red" onPress={() => onCloseModal()} />
           </View>
         </View>
       </View>

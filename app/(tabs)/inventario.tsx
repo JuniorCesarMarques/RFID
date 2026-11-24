@@ -40,6 +40,7 @@ import ModalTrocarUsuario from "@/components/ModalTrocarUsuario";
 import Segmented from "@/components/Segmented";
 import UsuarioLogado from "@/components/UsuarioLogado";
 import { changeUser } from "@/database/usuarioRepository";
+import { useEditModal } from "@/hooks/useEditModal";
 import { useFilter } from "@/hooks/useFilter";
 import editarCentrosService from "@/services/editarCentrosService";
 import { useFocusEffect } from "expo-router";
@@ -57,13 +58,15 @@ export default function TelaInventario() {
   const { inventarios, setInventarios, inventarioAtual, setInventarioAtual } =
     useInventarios();
 
+  // MODAIS
+  const { openEditModal, closeEditModal, editModalState } = useEditModal();
+
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const [modalState, setModalState] = useState<boolean>(false);
   const [addModal, setAddModal] = useState<boolean>(false);
-  const [editModal, setEditModal] = useState<boolean>(false);
   const [houveAlteracaoCentros, setHouveAlteracaoCentros] = useState(0);
   const [editCdcs, setEditCdcs] = useState<boolean>(false);
 
@@ -103,7 +106,6 @@ export default function TelaInventario() {
       );
   }
 
-
   const ativosFiltrados = useMemo(() => {
     if (!valorFiltro || !campoFiltro) {
       return ativosPorStatus;
@@ -119,7 +121,6 @@ export default function TelaInventario() {
     });
   }, [ativosPorStatus, valorFiltro]);
 
-  
   const {
     inicio,
     fim,
@@ -347,7 +348,11 @@ export default function TelaInventario() {
       />
       <ModalLeitura
         onCloseModal={onCloseModalLeitura}
-        totalAtivos={ativosInventario.filter((a) => a.Encontrado === 0 || a.Encontrado === 1).length}
+        totalAtivos={
+          ativosInventario.filter(
+            (a) => a.Encontrado === 0 || a.Encontrado === 1,
+          ).length
+        }
         modalState={modalState}
         setModalState={setModalState}
       />
@@ -399,7 +404,7 @@ export default function TelaInventario() {
           <TouchableOpacity
             style={[styles.btn, styles.btnEdit]}
             onPress={() => {
-              setEditModal(true);
+              openEditModal();
               limparSelecionados();
             }}
           >
@@ -452,8 +457,8 @@ export default function TelaInventario() {
       {inventarioAtual !== null && (
         <EditModal
           onAlteracao={setHouveAlteracaoCentros}
-          editModal={editModal}
-          setEditModal={setEditModal}
+          modalState={editModalState}
+          onCloseModal={closeEditModal}
           inventarioAtual={inventarioAtual}
           setInventarioAtual={setInventarioAtual}
         />
@@ -474,7 +479,7 @@ export default function TelaInventario() {
         </View>
       )}
       {!loading && inventarioAtual !== null && (
-        <View>
+        <View style={styles.content}>
           <Segmented selectedTab={selectedTab} onSelectedTab={onSelectedTab} />
 
           <Filtro
@@ -527,8 +532,8 @@ export default function TelaInventario() {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     backgroundColor: "white",
-    height: "100%",
   },
   textInput: {
     borderWidth: 1,
@@ -565,6 +570,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 8,
     gap: 8,
+  },
+  content: {
+    flex: 1,
   },
 
   /* PICKER */
