@@ -19,6 +19,7 @@ export default function Filtro({
   const [items] = useState([
     { label: "Código", value: "codigo_ativo" },
     { label: "Descrição", value: "descricao" },
+    { label: "Centro de custos", value: "centroDeCustos" },
   ]);
 
 
