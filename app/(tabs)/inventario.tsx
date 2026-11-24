@@ -124,20 +124,20 @@ export default function TelaInventario() {
     inicio,
     fim,
     paginaAtual,
-    setPaginaAtual,
+    onPaginaAtualChange,
     numberOfItemsPerPage,
-    setNumberOfItemsPerPage,
+    onItemsPerPageChange,
   } = usePagination();
 
   let ativosSliced = ativosFiltrados.slice(inicio, fim);
 
   useEffect(() => {
-    setPaginaAtual(0);
+    onPaginaAtualChange(0);
   }, [campoFiltro, valorFiltro]);
 
   const onSelectedTab = (i: number) => {
     setSelectedTab(i);
-    setPaginaAtual(0);
+    onPaginaAtualChange(0);
   };
 
   useFocusEffect(
@@ -485,9 +485,9 @@ export default function TelaInventario() {
 
           <PaginationNativePaper
             numberOfItemsPerPage={numberOfItemsPerPage}
-            onItemsPerPageChange={setNumberOfItemsPerPage}
+            onItemsPerPageChange={onItemsPerPageChange}
             totalItems={ativosFiltrados.length}
-            setPage={setPaginaAtual}
+            onPageChange={onPaginaAtualChange}
             page={paginaAtual}
           />
           {selectedCards.length > 0 && (

@@ -3,10 +3,15 @@ import { useState } from "react";
 export default function usePagination() {
   const [paginaAtual, setPaginaAtual] = useState<number>(0);
 
-  const numberOfItemsPerPageList = [20, 50, 100];
-  const [numberOfItemsPerPage, setNumberOfItemsPerPage] = useState<number>(
-    numberOfItemsPerPageList[0],
-  );
+  const [numberOfItemsPerPage, setNumberOfItemsPerPage] = useState<number>(20);
+
+  const onPaginaAtualChange = (n: number) => {
+    setPaginaAtual(n);
+  }
+
+  const onItemsPerPageChange = (n: number) => {
+    setNumberOfItemsPerPage(n);
+  }
 
   const inicio = paginaAtual * numberOfItemsPerPage;
   const fim = inicio + numberOfItemsPerPage;
@@ -15,8 +20,8 @@ export default function usePagination() {
     inicio,
     fim,
     paginaAtual,
-    setPaginaAtual,
+    onPaginaAtualChange,
     numberOfItemsPerPage,
-    setNumberOfItemsPerPage,
+    onItemsPerPageChange,
   };
 }

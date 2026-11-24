@@ -55,9 +55,9 @@ export default function Ativos() {
     inicio,
     fim,
     paginaAtual,
-    setPaginaAtual,
-    setNumberOfItemsPerPage,
+    onPaginaAtualChange,
     numberOfItemsPerPage,
+    onItemsPerPageChange,
   } = usePagination();
 
   const openAddAtivoModal = () => {
@@ -145,7 +145,7 @@ export default function Ativos() {
   }, [ativos, valorFiltro]);
 
   useEffect(() => {
-    setPaginaAtual(0);
+    onPaginaAtualChange(0);
   }, [valorFiltro, campoFiltro]);
 
   const ativosSliced = ativosFiltrados.slice(inicio, fim);
@@ -262,9 +262,9 @@ export default function Ativos() {
           {/* Scroll horizontal para a tabela */}
           <PaginationNativePaper
             numberOfItemsPerPage={numberOfItemsPerPage}
-            onItemsPerPageChange={setNumberOfItemsPerPage}
+            onItemsPerPageChange={onItemsPerPageChange}
             totalItems={ativosFiltrados.length}
-            setPage={setPaginaAtual}
+            onPageChange={onPaginaAtualChange}
             page={paginaAtual}
           />
           {ativos.length ? (

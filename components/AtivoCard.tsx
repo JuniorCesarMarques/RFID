@@ -7,6 +7,8 @@ import {
   View,
 } from "react-native";
 
+import { ATIVOS_COLUMN_WIDTHS } from "@/components/ativosTableStyles";
+
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 type Props = {
@@ -26,6 +28,7 @@ export default function AtivoCard({
   selecteds,
 }: Props) {
   const valor = Number(ativo.valor);
+
 
   return (
     <Pressable
@@ -48,33 +51,33 @@ export default function AtivoCard({
         }
       }}
     >
-      <View style={styles.wBuscar}>
+      <View style={ATIVOS_COLUMN_WIDTHS.wBuscar}>
         <TouchableOpacity onPress={() => onSearchIconPress(ativo.codigo_ativo)}>
           <FontAwesome size={20} name="search" />
         </TouchableOpacity>
       </View>
 
-      <View style={[styles.cell, styles.wStatus]}>
+      <View style={[styles.cell, ATIVOS_COLUMN_WIDTHS.wStatus]}>
         {ativo.Encontrado ? (
           <FontAwesome name="check-square" size={20} color="green" />
         ) : (
           <Text></Text>
         )}
       </View>
-      <Text style={[styles.cell, styles.wCodigo]}>{ativo.codigo_ativo}</Text>
-      <Text style={[styles.cell, styles.wDescricao]}>{ativo.descricao}</Text>
-      <Text style={[styles.cell, styles.wCentroDeCustos]}>
+      <Text style={[styles.cell, ATIVOS_COLUMN_WIDTHS.wCodigo]}>{ativo.codigo_ativo}</Text>
+      <Text style={[styles.cell, ATIVOS_COLUMN_WIDTHS.wDescricao]}>{ativo.descricao}</Text>
+      <Text style={[styles.cell, ATIVOS_COLUMN_WIDTHS.wCentroDeCustos]}>
         {ativo.centroDeCustos}
       </Text>
-      <Text style={[styles.cell, styles.wCentroDeCustos]}>
+      <Text style={[styles.cell, ATIVOS_COLUMN_WIDTHS.wCentroDeCustos]}>
         {ativo.novoCentroDeCustos}
       </Text>
-      <Text style={[styles.cell, styles.wSubdivisao]}>{ativo.subdivisao}</Text>
-      <Text style={[styles.cell, styles.wSubdivisao]}>
+      <Text style={[styles.cell, ATIVOS_COLUMN_WIDTHS.wSubdivisao]}>{ativo.subdivisao}</Text>
+      <Text style={[styles.cell, ATIVOS_COLUMN_WIDTHS.wSubdivisao]}>
         {ativo.novaSubdivisao}
       </Text>
-      <Text style={[styles.cell, styles.wValor]}>
-        {new Intl.NumberFormat("pt-BR", {
+      <Text style={[styles.cell, ATIVOS_COLUMN_WIDTHS.wValor]}>
+        {ativo.valor && new Intl.NumberFormat("pt-BR", {
           style: "currency",
           currency: "BRL",
         }).format(valor)}
@@ -110,13 +113,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
 
-  // LARGURAS FIXAS (IMPORTANTE: iguais ao ListaAtivos)
-  wBuscar: { width: 100 },
-  wCodigo: { width: 120 },
-  wStatus: { width: 100 },
-  wDescricao: { width: 200 },
-  wCategoria: { width: 150 },
-  wCentroDeCustos: { width: 150 },
-  wSubdivisao: { width: 150 },
-  wValor: { width: 100 },
 });

@@ -104,7 +104,6 @@ const styles = StyleSheet.create({
   },
 
   /* HEADER */
-
   cellHeader: {
     fontWeight: "600",
     fontSize: 14,

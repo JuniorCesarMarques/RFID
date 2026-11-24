@@ -3,10 +3,10 @@ import { DataTable } from "react-native-paper";
 
 type Props = {
   totalItems: number;
-  setPage: React.Dispatch<React.SetStateAction<number>>;
+  onPageChange: (n: number) => void;
   page: number;
   numberOfItemsPerPage: number;
-  onItemsPerPageChange: React.Dispatch<React.SetStateAction<number>>;
+  onItemsPerPageChange: (n: number) => void;
 };
 
 const numberOfItemsPerPageList = [20, 50, 100];
@@ -15,14 +15,14 @@ const MyComponent = ({
   onItemsPerPageChange,
   numberOfItemsPerPage,
   totalItems,
-  setPage,
+  onPageChange,
   page,
 }: Props) => {
   const from = page * numberOfItemsPerPage;
   const to = Math.min((page + 1) * numberOfItemsPerPage, totalItems);
 
   React.useEffect(() => {
-    setPage(0);
+    onPageChange(0);
   }, [numberOfItemsPerPage]);
 
   return (
@@ -30,13 +30,13 @@ const MyComponent = ({
       <DataTable.Pagination
         page={page}
         numberOfPages={Math.ceil(totalItems / numberOfItemsPerPage)}
-        onPageChange={(page) => setPage(page)}
+        onPageChange={onPageChange}
         label={`${from + 1}-${to} de ${totalItems}`}
         showFastPaginationControls
         numberOfItemsPerPageList={numberOfItemsPerPageList}
         numberOfItemsPerPage={numberOfItemsPerPage}
         onItemsPerPageChange={onItemsPerPageChange}
-        selectPageDropdownLabel={"Items por pagina"}
+        selectPageDropdownLabel={"Itens por pagina"}
       />
     </DataTable>
   );
