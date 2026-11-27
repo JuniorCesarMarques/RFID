@@ -1,5 +1,5 @@
 import { Picker } from "@react-native-picker/picker";
-import { SetStateAction, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 
 type Props = {
@@ -20,6 +20,7 @@ export default function Filtro({
     { label: "Código", value: "codigo_ativo" },
     { label: "Descrição", value: "descricao" },
     { label: "Centro de custos", value: "centroDeCustos" },
+    { label: "Novo centro de custos", value: "novoCentroDeCustos" },
   ]);
 
 

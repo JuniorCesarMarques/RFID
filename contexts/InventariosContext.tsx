@@ -58,7 +58,7 @@ export const useInventarios = () => {
   const context = useContext(InventariosContext);
   if (!context) {
     throw new Error(
-      "useInventarios deve ser usado dentro de IventariosProvider",
+      "useInventarios deve ser usado dentro de InventariosProvider",
     );
   }
   return context;

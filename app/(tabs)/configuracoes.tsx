@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Permission,
@@ -27,6 +27,8 @@ export default function BluetoothScreen() {
   const [connecting, setConnecting] = useState(false);
   const [connectingTo, setConnectingTo] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+
+  const bluetoothCallbacksRef = useRef(new Set<(data: unknown) => void>());
 
   async function requestBluetoothPermissions() {
     if (Platform.OS !== "android") return true;

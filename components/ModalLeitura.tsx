@@ -2,11 +2,19 @@ import { FormData } from "@/components/LeituraManualForm";
 import { useAtivo } from "@/contexts/AtivosContext";
 import { useBluetooth } from "@/contexts/BluetoothContext";
 import { useInventarios } from "@/contexts/InventariosContext";
-import useLeitura from "@/hooks/leitura";
+import { useLeituraProvider } from "@/contexts/LeituraContext";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useFocusEffect } from "@react-navigation/native";
+import Checkbox from "expo-checkbox";
 import { Dispatch, useCallback, useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Toast from "react-native-toast-message";
 import AlertComponent from "./AlertComponent";
 import CentrosDeCustosSelect, { CentroDivisao } from "./CentrosDeCustosSelect";
@@ -14,7 +22,6 @@ import EmptyLeituraState from "./EmptyLeituraState";
 import FiltroSeletor from "./FiltroSeletor";
 import LeituraManual from "./LeituraManual";
 import ModalGenerico from "./ModalGenerico";
-import Checkbox from "expo-checkbox";
 
 type ModalLeituraType = {
   onCloseModal: () => void;
@@ -34,20 +41,21 @@ export default function ModalLeitura({
   setModalState,
   totalAtivos,
 }: ModalLeituraType) {
-  
   const { ativos } = useAtivo();
 
-  const { count, resetReading, dispositivoConectado } = useBluetooth();
+  const { dispositivoConectado } = useBluetooth();
 
   const {
+    count,
+    qtdAtivos,
+    resetReading,
     leitura,
     leituraManual,
-    qtdAtivos,
     atualizarQtdAtivos,
     teveLeitura,
     naoCadastrado,
     toggleNaoCadastrados,
-  } = useLeitura();
+  } = useLeituraProvider();
 
   const { inventarioAtual } = useInventarios();
 
@@ -137,76 +145,73 @@ export default function ModalLeitura({
       height={`${listaImportada ? "65%" : "45%"}`}
       modalState={modalState}
       onClose={closeModal}
-      basedOnKeyboard
+      // basedOnKeyboard
     >
       {listaImportada ? (
-        <View style={styles.wrapper}>
-          <View style={styles.header}>
-            <View style={styles.side} />
-
-            <Text style={styles.headerTitle}>Modo leitura</Text>
-          </View>
-
-          <View style={styles.divider} />
-
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
-            nestedScrollEnabled
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            {!dispositivoConectado && (
-              <AlertComponent text="Conecte o leitor RFID para habilitar a leitura automática" />
-            )}
-
-            <FiltroSeletor selecionados={filtro} setSelecionados={setFiltro} />
-            <View>
-              <CentrosDeCustosSelect
-                incluiManualInfo={incluirManualInfo}
-                selecionado={cdcSelecionado}
-                setSelecionado={setCdcSelecionado}
-              />
-            </View>
-
-            <TouchableOpacity onPress={() => toggleNaoCadastrados()} style={styles.checkbox}>
-              <Text>Não Cadastrados</Text>
-              <Checkbox value={naoCadastrado} />
-            </TouchableOpacity>
-
-            <SegmentedControl
-              style={styles.segmented}
-              values={["RFID", "Manual"]}
-              selectedIndex={dispositivoConectado ? modo : 1}
-              enabled={!!dispositivoConectado}
-              onChange={(event) =>
-                setModo(event.nativeEvent.selectedSegmentIndex)
-              }
-            />
-
-            {!modo && dispositivoConectado ? (
-              <View style={styles.containerLeitura}>
-                <Text style={styles.titulo}>Leituras realizadas</Text>
-
-                <Text style={styles.contador}>{count}</Text>
-
-                <Text style={styles.titulo}>
-                  Ativos do inventário que foram encontrados
-                </Text>
-
-                <Text style={styles.contador}>
-                  {qtdAtivos} / {totalAtivos}
-                </Text>
+            <View style={styles.wrapper}>
+              <View style={styles.header}>
+                <View style={styles.side} />
+                <Text style={styles.headerTitle}>Modo leitura</Text>
               </View>
-            ) : (
-              <LeituraManual
-                checked={incluirManualInfo}
-                setChecked={setIncluirManualInfo}
-                onSubmit={handleSubmit}
-              />
-            )}
-          </ScrollView>
-        </View>
+              <View style={styles.divider} />
+              <ScrollView
+                style={styles.scroll}
+                contentContainerStyle={styles.scrollContent}
+                nestedScrollEnabled
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="interactive"
+                showsVerticalScrollIndicator={false}
+              >
+                {!dispositivoConectado && (
+                  <AlertComponent text="Conecte o leitor RFID para habilitar a leitura automática" />
+                )}
+                <FiltroSeletor
+                  selecionados={filtro}
+                  setSelecionados={setFiltro}
+                />
+                <View>
+                  <CentrosDeCustosSelect
+                    incluiManualInfo={incluirManualInfo}
+                    selecionado={cdcSelecionado}
+                    setSelecionado={setCdcSelecionado}
+                  />
+                </View>
+                <TouchableOpacity
+                  onPress={() => toggleNaoCadastrados()}
+                  style={styles.checkbox}
+                >
+                  <Text>Não Cadastrados</Text>
+                  <Checkbox value={naoCadastrado} />
+                </TouchableOpacity>
+                <SegmentedControl
+                  style={styles.segmented}
+                  values={["RFID", "Manual"]}
+                  selectedIndex={dispositivoConectado ? modo : 1}
+                  enabled={!!dispositivoConectado}
+                  onChange={(event) =>
+                    setModo(event.nativeEvent.selectedSegmentIndex)
+                  }
+                />
+                {!modo && dispositivoConectado ? (
+                  <View style={styles.containerLeitura}>
+                    <Text style={styles.titulo}>Leituras realizadas</Text>
+                    <Text style={styles.contador}>{count}</Text>
+                    <Text style={styles.titulo}>
+                      Ativos do inventário que foram encontrados
+                    </Text>
+                    <Text style={styles.contador}>
+                      {qtdAtivos} / {totalAtivos}
+                    </Text>
+                  </View>
+                ) : (
+                  <LeituraManual
+                    checked={incluirManualInfo}
+                    setChecked={setIncluirManualInfo}
+                    onSubmit={handleSubmit}
+                  />
+                )}
+              </ScrollView>
+            </View>
       ) : (
         <EmptyLeituraState />
       )}
@@ -272,7 +277,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     width: "100%",
     paddingHorizontal: 30,
-    gap: 10
+    gap: 10,
   },
 
   titulo: {

@@ -1,7 +1,6 @@
 import { CentroDivisao } from "@/components/CentrosDeCustosSelect";
 import { FormData } from "@/components/LeituraManualForm";
 import { useAtivo } from "@/contexts/AtivosContext";
-import { useBluetooth } from "@/contexts/BluetoothContext";
 import { useInventarios } from "@/contexts/InventariosContext";
 import { contarAtivos, inserirAtivo } from "@/database/ativosRepository";
 import { useDataBase } from "@/database/DatabaseContext";
@@ -9,27 +8,49 @@ import { useLiveLocation } from "@/hooks/useLiveLocation";
 import { AtivosInventario } from "@/types";
 import { useCallback, useRef, useState } from "react";
 import { Alert } from "react-native";
+import { BluetoothDevice, BluetoothDeviceReadEvent } from "react-native-bluetooth-classic";
 
-type ParametrosLeitura = {
+export type ParametrosLeitura = {
   filtro: CentroDivisao[];
   centroDivisao: CentroDivisao | null;
 };
 
-type ParametrosLeituraManual = {
+export type ParametrosLeituraManual = {
   data: FormData;
   filtro: CentroDivisao[];
   centroDivisao: CentroDivisao | null;
 };
 
 export default function useLeitura() {
-  const { tagData, queueRef, dispositivoConectado, ultimo } = useBluetooth();
   const { inventarioAtual } = useInventarios();
   const { location } = useLiveLocation();
   const { ativos } = useAtivo();
   const db = useDataBase();
+
   const [qtdAtivos, setQtdAtivos] = useState<number>(0);
   const [rssi, setRssi] = useState<number | null>(null);
   const lastEpc = useRef<string>("");
+
+  const queueRef = useRef<string[]>([]);
+
+  const [count, setCount] = useState(0);
+
+  const setCounter = () => {
+    setCount((prev) => prev + 1);
+  };
+
+  const resetCount = () => {
+    setCount(0);
+  };
+
+  const fun = (event: BluetoothDeviceReadEvent) => {
+    // VERIFICAR O QUE VEM PARA SABER SE NÃO VEM CODIGOS SEM EP
+    if (event.data.includes("EP: ") || event.data.includes("RI:")) {
+
+      queueRef.current.push(event.data);
+      setCounter();
+    }
+  };
 
   const [naoCadastrado, setNaoCadastrado] = useState(false);
 
@@ -51,8 +72,12 @@ export default function useLeitura() {
 
   const toggleNaoCadastrados = () => {
     setNaoCadastrado((prev) => !prev);
-  }
+  };
 
+  function resetReading() {
+    queueRef.current = [];
+    resetCount();
+  }
 
   const leituraManual = async ({
     data,
@@ -92,7 +117,6 @@ export default function useLeitura() {
     if (!ativo) {
       return { success: false, message: "Ativo não encontrado." };
     }
-
 
     try {
       const ativoInventario: AtivosInventario = {
@@ -150,6 +174,8 @@ export default function useLeitura() {
 
     const res = queueRef.current.shift();
 
+    console.log(res);
+
     let codigo: string;
     if (res?.includes("EP:")) {
       codigo = res.replace("EP:", "").trim().replace(/^0+/, "");
@@ -203,14 +229,15 @@ export default function useLeitura() {
         return;
       }
 
-      tagData.current = { epc: "", rssi: "" };
-
       setQtdAtivos(result.total);
     } catch (err) {}
   };
 
-  const iniciarLeitura = (epc: string) => {
-    if (!dispositivoConectado) return;
+  const iniciarLeitura = (epc: string, dispositivoConectado: BluetoothDevice | null) => {
+
+    if(!dispositivoConectado){
+      return
+    }
 
     setBuscandoAtivo(true);
     const epcCompleto = epc.padStart(24, "0");
@@ -238,6 +265,12 @@ export default function useLeitura() {
   return {
     leitura,
     leituraManual,
+    fun,
+    count,
+    setCounter,
+    resetCount,
+    resetReading,
+    queueRef,
     naoCadastrado,
     toggleNaoCadastrados,
     qtdAtivos,
@@ -250,4 +283,3 @@ export default function useLeitura() {
     setBuscandoAtivo,
   };
 }
-

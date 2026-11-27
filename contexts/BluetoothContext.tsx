@@ -1,34 +1,30 @@
+import { ensureBluetoothPermissions } from "@/utils/bluetoothPermissions";
 import React, {
   createContext,
-  RefObject,
   SetStateAction,
   useContext,
   useEffect,
   useRef,
   useState,
 } from "react";
-import { Alert, PermissionsAndroid, Platform } from "react-native";
+import { Alert } from "react-native";
 import BluetoothClassic, {
   BluetoothDevice,
+  BluetoothDeviceReadEvent,
   BluetoothEventSubscription,
 } from "react-native-bluetooth-classic";
 import BluetoothModule from "react-native-bluetooth-classic/lib/BluetoothModule";
 
 type BluetoothContextType = {
-  ultimo: RefObject<number>;
-  tagData: RefObject<{ epc: string; rssi: string }>;
-  modoRef: RefObject<number>;
   BluetoothClassic: BluetoothModule;
-  resetReading: () => void;
-  count: number;
-  setCount: React.Dispatch<SetStateAction<number>>;
-  queueRef: React.RefObject<string[]>;
   dispositivoConectado: BluetoothDevice | null;
   setDispositivoConectado: React.Dispatch<
     SetStateAction<BluetoothDevice | null>
   >;
   connect: (device: BluetoothDevice) => Promise<void>;
   disconnect: () => Promise<void>;
+  registerOnRead: (callback: (event: BluetoothDeviceReadEvent) => void) => void;
+  registerOnDisconnected: (callback: () => void) => void;
 };
 
 const BluetoothContext = createContext<BluetoothContextType | null>(null);
@@ -38,25 +34,34 @@ export default function BluetoothProvider({
 }: {
   children: React.ReactNode;
 }) {
+
   const [dispositivoConectado, setDispositivoConectado] =
     useState<BluetoothDevice | null>(null);
 
-  const queueRef = useRef<string[]>([]);
-  const modoRef = useRef<number>(0);
-  const tagData = useRef<{ epc: string; rssi: string }>({ epc: "", rssi: "" });
+    // função de leitura
+  const onReadRef = useRef<(event: BluetoothDeviceReadEvent) => void>(
+    () => {},
+  );
 
-  const [count, setCount] = useState<number>(0);
-
-  const ultimo = useRef(0);
+  const onDisconnectedRef =
+  useRef<(() => void)>(() => {});
 
   const subscriptionRef = useRef<BluetoothEventSubscription | null>(null);
+
+  const registerOnRead = (fun: (event: BluetoothDeviceReadEvent) => void) => {
+    onReadRef.current = fun;
+  };
+
+  const registerOnDisconnected = (callback: () => void) => {
+    onDisconnectedRef.current = callback;
+  }
 
   useEffect(() => {
     if (!dispositivoConectado) return;
 
     const subscription = BluetoothClassic.onDeviceDisconnected((event) => {
       if (event.device.address === dispositivoConectado.address) {
-        resetReading();
+        onDisconnectedRef.current();
 
         subscriptionRef.current?.remove();
         subscriptionRef.current = null;
@@ -70,29 +75,7 @@ export default function BluetoothProvider({
     };
   }, [dispositivoConectado]);
 
-  function resetReading() {
-    queueRef.current = [];
-    setCount(0);
-  }
 
-  async function ensureBluetoothPermissions() {
-    if (Platform.OS !== "android") return true;
-
-    const permissions = [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION];
-
-    if (Platform.Version >= 31) {
-      permissions.push(
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-      );
-    }
-
-    const granted = await PermissionsAndroid.requestMultiple(permissions);
-
-    return Object.values(granted).every(
-      (v) => v === PermissionsAndroid.RESULTS.GRANTED,
-    );
-  }
 
   async function connect(device: BluetoothDevice) {
     const ok = await ensureBluetoothPermissions();
@@ -110,25 +93,19 @@ export default function BluetoothProvider({
 
       subscriptionRef.current = BluetoothClassic.onDeviceRead(
         connected.address,
-        (event) => {
-
-          if (event.data.includes("EP: ") || event.data.includes("RI:")) {
-            queueRef.current.push(event.data);
-            setCount((prev) => prev + 1);
-          }
-        },
+        onReadRef.current,
       );
     } catch (e) {
       Alert.alert("Erro ao conectar");
     }
   }
 
-  /** Desconectar */
+  /** Remover resetReading e colocar callback */
   async function disconnect() {
     if (!dispositivoConectado) return;
 
     try {
-      resetReading();
+      onDisconnectedRef.current();
 
       subscriptionRef.current?.remove();
       subscriptionRef.current = null;
@@ -144,18 +121,13 @@ export default function BluetoothProvider({
   return (
     <BluetoothContext.Provider
       value={{
-        tagData,
-        modoRef,
         connect,
         disconnect,
         dispositivoConectado,
         setDispositivoConectado,
-        queueRef,
-        count,
-        setCount,
-        resetReading,
         BluetoothClassic,
-        ultimo
+        registerOnRead,
+        registerOnDisconnected
       }}
     >
       {children}

@@ -13,13 +13,11 @@ import Header from "@/components/Header";
 import AtivosProvider from "@/contexts/AtivosContext";
 import BluetoothProvider from "@/contexts/BluetoothContext";
 import InventariosProvider from "@/contexts/InventariosContext";
+import LeituraProvider from "@/contexts/LeituraContext";
 import DatabaseProvider from "@/database/DatabaseContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
-import {
-  MD3LightTheme,
-  Provider as PaperProvider,
-} from "react-native-paper";
+import { MD3LightTheme, Provider as PaperProvider } from "react-native-paper";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -39,11 +37,12 @@ export default function RootLayout() {
 
   return (
     <PaperProvider theme={theme}>
-        <ActionSheetProvider>
-          <BluetoothProvider>
-            <DatabaseProvider>
-              <InventariosProvider>
-                <AtivosProvider>
+      <DatabaseProvider>
+        <InventariosProvider>
+          <ActionSheetProvider>
+            <AtivosProvider>
+              <BluetoothProvider>
+                <LeituraProvider>
                   <ThemeProvider
                     value={colorScheme === "light" ? DefaultTheme : DarkTheme}
                   >
@@ -63,12 +62,14 @@ export default function RootLayout() {
                     </Stack>
                     <StatusBar style="auto" />
                   </ThemeProvider>
+
                   <Toast />
-                </AtivosProvider>
-              </InventariosProvider>
-            </DatabaseProvider>
-          </BluetoothProvider>
-        </ActionSheetProvider>
+                </LeituraProvider>
+              </BluetoothProvider>
+            </AtivosProvider>
+          </ActionSheetProvider>
+        </InventariosProvider>
+      </DatabaseProvider>
     </PaperProvider>
   );
 }

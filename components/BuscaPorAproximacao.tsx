@@ -1,26 +1,30 @@
 import { useBluetooth } from "@/contexts/BluetoothContext";
-import useLeitura from "@/hooks/leitura";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
+import { playBeep, stopBeep } from "@/utils/beep";
 import getIntervalFromRssi from "@/utils/getIntervalFromRssi";
 import getStatus from "@/utils/getStatus";
-import { playBeep, stopBeep } from "@/utils/beep";
 import BarrasSinal from "./BarrasSinal";
 
+import { useLeituraProvider } from "@/contexts/LeituraContext";
+import useDidUpdate from "@/hooks/useDidUpdate";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Octicons from "@expo/vector-icons/Octicons";
 import AlertDesconectado from "./AlertDesconectado";
-import useDidUpdate from "@/hooks/useDidUpdate";
 
 export default function BuscaPorAproximacao({ epc }: { epc: string }) {
-  const { iniciarLeitura, rssi, setRssi, buscandoAtivo, setBuscandoAtivo } = useLeitura();
-  const { count, dispositivoConectado } = useBluetooth();
+
+  const {
+    count,
+    iniciarLeitura,
+    rssi,
+    setRssiValue,
+    buscandoAtivo,
+    toggleBusca,
+  } = useLeituraProvider();
+
+  const { dispositivoConectado } = useBluetooth();
 
   const intervalId = useRef<number | null>(null);
 
@@ -39,22 +43,22 @@ export default function BuscaPorAproximacao({ epc }: { epc: string }) {
   };
 
   useDidUpdate(() => {
-      iniciarLeitura(epc);
+    iniciarLeitura(epc, dispositivoConectado);
 
     const timeoutId = setTimeout(() => {
       if (intervalId.current) {
         clearInterval(intervalId.current);
       }
 
-      setBuscandoAtivo(false);
+      toggleBusca(false);
       setIntervalo(null);
-      setRssi(null);
+      setRssiValue(null);
     }, 5000);
 
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [count])
+  }, [count]);
 
   useEffect(() => {
     if (intervalo && !mutado) {
@@ -80,48 +84,47 @@ export default function BuscaPorAproximacao({ epc }: { epc: string }) {
 
   if (!dispositivoConectado) return <AlertDesconectado />;
 
-
- return (
-  <View style={styles.container}>
-    <TouchableOpacity
-      onPress={handleMutado}
-      activeOpacity={0.8}
-      style={styles.soundButton}
-    >
-      {mutado ? (
-        <FontAwesome5 name="volume-mute" size={16} color="#64748B" />
-      ) : (
-        <Octicons name="unmute" size={16} color="#0F172A" />
-      )}
-    </TouchableOpacity>
-
-    <Text style={styles.title}>Busca por aproximação</Text>
-
-    <Text style={styles.epc} numberOfLines={1}>
-      {epc}
-    </Text>
-
-    <View style={styles.signalContainer}>
-      <BarrasSinal status={status} />
-
-      <Text
-        style={[
-          styles.status,
-          {
-            color: status.color,
-          },
-        ]}
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity
+        onPress={handleMutado}
+        activeOpacity={0.8}
+        style={styles.soundButton}
       >
-        {buscandoAtivo && rssi === null ? "Procurando..." : status.label}
+        {mutado ? (
+          <FontAwesome5 name="volume-mute" size={16} color="#64748B" />
+        ) : (
+          <Octicons name="unmute" size={16} color="#0F172A" />
+        )}
+      </TouchableOpacity>
+
+      <Text style={styles.title}>Busca por aproximação</Text>
+
+      <Text style={styles.epc} numberOfLines={1}>
+        {epc}
       </Text>
 
-      <Text style={styles.rssi}>
-        {rssi !== null && `${rssi} RSSI`}
-      </Text>
+      <View style={styles.signalContainer}>
+        <BarrasSinal status={status} />
+
+        <Text
+          style={[
+            styles.status,
+            {
+              color: status.color,
+            },
+          ]}
+        >
+          {buscandoAtivo && rssi === null ? "Procurando..." : status.label}
+        </Text>
+
+        <Text style={styles.rssi}>{rssi !== null && `${rssi} RSSI`}</Text>
+      </View>
+      {!buscandoAtivo && (
+        <Text>Pressione o botão do leitor para iniciar a leitura</Text>
+      )}
     </View>
-    {!buscandoAtivo && <Text>Pressione o botão do leitor para iniciar a leitura</Text>}
-  </View>
-);
+  );
 }
 
 const styles = StyleSheet.create({
